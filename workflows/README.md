@@ -1,93 +1,103 @@
-# 🎓 Eight Academy — Admisiones IA v2.0
+# Eight Academy — Admisiones IA v2 · Setup Guide
 
-Sistema avanzado de generación de leads para admisiones. 6 workflows n8n interconectados con scoring NSE, intención de compra y outreach hiper-personalizado.
+## 🔗 Links
 
-## Campuses
+| Recurso | URL |
+|---------|-----|
+| Caso de Éxito Live | https://rufoiot.github.io/eightacademy-admisiones-ia/ |
+| Google Sheet (CRM) | https://docs.google.com/spreadsheets/d/1CdGDhEDUpHaO8Puzmw1DyCB-U34xQkoSkI_r2LQRAN4/edit |
+| n8n Cloud | https://cyberdog87.app.n8n.cloud/home/workflows |
+| Repo GitHub | https://github.com/RUFOIOT/eightacademy-admisiones-ia |
 
-| Campus | Nivel | Dirección | Coords |
-|--------|-------|-----------|--------|
-| Eight Kids | Inicial | Los Alhelíes E15-44, Quito | -0.2180,-78.4890 |
-| Primaria | EGB | Av. 6 de Diciembre y M. Zambrano | -0.1950,-78.4860 |
-| Secundaria | Bachillerato | Av. La Prensa y Nicolás López | -0.1267,-78.5003 |
-| Zoo Botánica | Todos | 15 min de Guayllabamba | -0.0639,-78.3618 |
+---
 
-## Los 6 Workflows
+## ⚙️ Setup en 5 pasos
 
-| # | Archivo | Función | Trigger |
-|---|---------|---------|---------|
-| WF1 | `workflow-01-geo-families-v2.json` | Geo Family Discovery (4 sedes × 4 queries = 16 búsquedas) | Lun/Mié/Vie 8AM |
-| WF2 | `workflow-02-intent-keywords-v2.json` | Intent Keywords (8 queries: hot/warm/discovery) | Mar/Jue 7AM |
-| WF3 | `workflow-03-outreach-v2.json` | Outreach NSE-aware (A/B+/B routing) | Webhook |
-| WF4 | `workflow-04-openclaw-bridge.json` | Bridge OpenClaw↔n8n | Webhook |
-| WF5 | `workflow-05-nse-zone-mapper.json` | NSE Zone Mapper (poder adquisitivo por zona) | Webhook |
-| WF6 | `workflow-06-competitor-gap.json` | Competitor Gap Intelligence | Miércoles 8AM |
+### Paso 1 — Variables en n8n
+En n8n Cloud: **Settings → Variables → Add**
 
-## Google Sheet — 5 Tabs requeridas
+| Variable | Valor |
+|----------|-------|
+| `GOOGLE_MAPS_API_KEY` | Tu API key de Google Cloud Console |
+| `ANTHROPIC_API_KEY` | Tu API key de Anthropic (console.anthropic.com) |
+| `BRAVE_API_KEY` | Ver openclaw.json en workspace |
+| `LEADS_SHEET_ID` | `1CdGDhEDUpHaO8Puzmw1DyCB-U34xQkoSkI_r2LQRAN4` |
+| `OPENCLAW_WEBHOOK_URL` | URL del webhook de OpenClaw (ver OpenClaw → Integrations) |
 
-```
-Tab 1: Leads Familias       ← WF1 (geo family discovery)
-Tab 2: Leads Colegios       ← WF1 (escuelas y aliados)
-Tab 3: Trends Weekly        ← WF2 (tendencias semanales)
-Tab 4: Intent Signals       ← WF2 (señales de intención)
-Tab 5: Competitor Intel     ← WF6 (inteligencia competitiva)
-```
-
-## Variables de Entorno (n8n Settings → Variables)
+### Paso 2 — Importar los 6 workflows
+En n8n Cloud: **Workflows → Import** (uno por uno)
 
 ```
-GOOGLE_MAPS_API_KEY     → Maps Platform con Places API habilitado
-ANTHROPIC_API_KEY       → Claude (Haiku para scoring, Sonnet para outreach)
-BRAVE_API_KEY           → Ya configurado en openclaw.json
-LEADS_SHEET_ID          → ID del Google Sheet CRM
-OPENCLAW_WEBHOOK_URL    → Webhook de notificaciones OpenClaw
+workflow-01-geo-families-v2.json    → WF1 Geo Family Discovery
+workflow-02-intent-keywords-v2.json → WF2 Intent Keywords Engine
+workflow-03-outreach-v2.json        → WF3 Smart Outreach
+                                      (WF4 OpenClaw Bridge — incluido en WF3)
+workflow-05-nse-zone-mapper.json    → WF5 NSE Zone Mapper
+workflow-06-competitor-gap.json     → WF6 Competitor Gap Intelligence
 ```
 
-## Scoring Variables (WF1)
+### Paso 3 — Google Sheet ✅ (YA LISTO)
+Sheet creado con 5 tabs:
+- `Leads Familias` · `Leads Colegios` · `Trends Weekly` · `Intent Signals` · `Competitor Intel`
 
-| Variable | Rango | Descripción |
-|----------|-------|-------------|
-| `poder_adquisitivo_score` | 0-10 | ¿Puede pagar $350/mes? |
-| `intent_score` | 0-10 | ¿Está buscando colegio activamente? |
-| `zona_nse` | A/B+/B/C+ | Nivel socioeconómico del sector |
-| `distancia_sede_km` | km | Al campus más cercano |
-| `tech_affinity` | 0-10 | Valores tecnológicos del hogar |
-| `fit_score` | 0-10 | Encaje con Eight Academy |
+Conectar OAuth2 Google Sheets en n8n: **Credentials → New → Google Sheets OAuth2**
 
-## Outreach Routing por NSE (WF3)
+### Paso 4 — Verificar coordenadas de sedes
+En WF1 (Code node "⚙️ Config: 4 Sedes x 4 Queries = 16 Jobs") confirmar:
 
-| NSE | Ingreso Est. | Ángulo Principal |
-|-----|-------------|-----------------|
-| A | $7,000+/mes | Exclusividad · Metaverso · Líder Ecuador |
-| B+ | $3,500-7,000 | Innovación · Tech · Sin matrícula como extra |
-| B | $2,000-3,500 | **SIN MATRÍCULA** + **BECAS** como gancho |
+| Sede | Coords actuales |
+|------|----------------|
+| Eight Kids — Los Alhelíes E15-44 | -0.2180, -78.4890 |
+| Primaria — Av. 6 Dic. & M. Zambrano | -0.1950, -78.4860 |
+| Secundaria — Av. La Prensa & N. López | -0.1267, -78.5003 |
+| Zoo Botánica — Guayllabamba | -0.0639, -78.3618 |
 
-## Setup Rápido (30 min)
+### Paso 5 — Test manual WF1
+En n8n: abrir WF1 → **Test Workflow** (botón ▶️)
+Resultado esperado: leads guardados en Google Sheet tab "Leads Familias"
 
-1. **n8n** → Settings → Variables → Añadir las 5 keys
-2. **Importar** los 6 JSONs en orden (WF1→WF6)
-3. **Google Sheet** → Crear con las 5 tabs
-4. **Credentials** → Google Sheets OAuth2 + Gmail OAuth2
-5. **Coordenadas** → Verificar/actualizar coords exactas en WF1 Code node
-6. **Test manual** → Ejecutar WF1, revisar primeros leads en Sheet
-7. **Activar** todos los workflows
+---
 
-## Comandos OpenClaw → n8n (WF4)
+## 🗺️ Arquitectura de los 6 Workflows
 
-```json
-{"command": "get_stats"}      → Stats del pipeline en vivo
-{"command": "get_trends"}     → Último reporte de tendencias
-{"command": "buscar_leads"}   → Disparar búsqueda manual
-{"command": "nse_query"}      → Consultar NSE de una zona
+```
+WF1: 4 sedes × 4 tipos de lugar = 16 queries Google Places
+     → Claude scoring → Sheet "Leads Familias" → Hot Lead → OpenClaw alert
+
+WF2: 8 keywords HOT/WARM/DISCOVERY via Brave Search
+     → Claude análisis → Sheet "Intent Signals" → Intent≥7 → OpenClaw alert
+
+WF3: Lead entrante → NSE routing → Claude redacta (3 estilos)
+     → Draft WhatsApp a OpenClaw + Draft email a Gmail
+
+WF5: GPS input → 3 indicadores NSE → zona_nse + promo_recomendada (webhook)
+
+WF6: 8 queries familias switching → Claude score oportunidad
+     → Sheet "Competitor Intel" → Hot gap → OpenClaw alert
 ```
 
-## Mejoras v2 vs v1
+---
 
-- ✅ Busca **familias** (B2C) además de colegios (B2B)
-- ✅ **4 sedes** georeferenciadas (vs 1 punto central)
-- ✅ **16 búsquedas** por ejecución (vs 1)
-- ✅ Scoring con **6 variables** (vs 1 score simple)
-- ✅ Outreach **NSE-aware**: A/B+/B con mensajes diferentes
-- ✅ **Intent Keywords** con 8 queries específicas EA
-- ✅ **Competitor Gap** para detectar familias switching
-- ✅ **NSE Zone Mapper** standalone
-- ✅ Contexto completo Eight Academy en todos los prompts Claude
+## 📊 Scoring de Leads
+
+Solo pasan al CRM: `poder_adquisitivo_score ≥ 5` AND `fit_score ≥ 5`
+
+| Score | Variable | Peso |
+|-------|----------|------|
+| 0-10 | poder_adquisitivo_score | ¿Puede pagar $350/mes? |
+| 0-10 | intent_score | ¿Busca colegio activamente? |
+| A/B+/B/C+ | zona_nse | NSE del sector |
+| km | distancia_sede_km | Cercanía al campus |
+| 0-10 | tech_affinity | Afinidad tecnológica |
+| 0-10 | fit_score | Encaje con Eight Academy |
+
+---
+
+## ⚠️ Pendientes para activación completa
+
+1. **WhatsApp admisiones real**: reemplazar `593999793094` (test) con el número oficial
+2. **Google Maps API key**: crear en Google Cloud Console (habilitar Places API)
+3. **OpenClaw Webhook URL**: configurar en OpenClaw → Integrations
+4. **Gmail OAuth en n8n**: conectar para WF3 email drafts
+5. **Verificar coords exactas** de las 4 sedes en Google Maps
+

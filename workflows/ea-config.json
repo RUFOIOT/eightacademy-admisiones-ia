@@ -5,8 +5,8 @@
     "tagline": "Construimos la Educación del Futuro",
     "website": "https://eightacademy.ec",
     "type": "Unidad Educativa Bilingüe",
-    "phone": "COMPLETAR",
-    "email": "COMPLETAR",
+    "phone": "+593 99 979 3094",
+    "email": "admisiones@eightacademy.ec",
     "unique_differentiators": [
       "Único colegio en Ecuador con Aulas de Metaverso y Realidad Virtual",
       "Emprendimientos Digitales como materia curricular (único en Ecuador)",
@@ -38,7 +38,8 @@
       "2. Coordinador de admisiones contacta (WhatsApp/llamada)",
       "3. Visita guiada a instalaciones + evaluación en Realidad Virtual GRATIS",
       "4. Bienvenido a la revolución educativa"
-    ]
+    ],
+    "whatsapp_admisiones": "593999793094"
   },
   "sedes": [
     {
@@ -46,8 +47,8 @@
       "name": "Eight Kids",
       "nivel": "Inicial / Educación Temprana",
       "address": "Los Alhelíes E15-44, Quito",
-      "lat": -0.2180,
-      "lng": -78.4890,
+      "lat": -0.218,
+      "lng": -78.489,
       "sector": "Norte de Quito",
       "radio_km": 10,
       "note": "Actualizar coordenadas exactas en Google Maps"
@@ -57,8 +58,8 @@
       "name": "Eight Academy Primaria",
       "nivel": "Educación General Básica",
       "address": "Av. 6 de Diciembre y Manuel Zambrano, Quito",
-      "lat": -0.1950,
-      "lng": -78.4860,
+      "lat": -0.195,
+      "lng": -78.486,
       "sector": "Norte de Quito (La Carolina / González Suárez)",
       "radio_km": 10,
       "note": "Zona premium NSE A-B+"
@@ -91,19 +92,52 @@
       "name": "Familia Tech-Emprendedora",
       "description": "Padres 28-45 años, profesionales/emprendedores, valoran innovación y tecnología, buscan más que educación tradicional para sus hijos",
       "income_usd_month": "2500-7000",
-      "nse": ["A", "B+"],
-      "values": ["innovación", "emprendimiento", "tecnología", "futuro", "bilingüismo"],
-      "pain_points": ["colegios tradicionales aburridos", "falta de tech en aulas", "hijos sin habilidades para el futuro"],
-      "keywords_buscados": ["colegio innovador Quito", "educación tecnológica niños", "STEM colegio bilingüe"]
+      "nse": [
+        "A",
+        "B+"
+      ],
+      "values": [
+        "innovación",
+        "emprendimiento",
+        "tecnología",
+        "futuro",
+        "bilingüismo"
+      ],
+      "pain_points": [
+        "colegios tradicionales aburridos",
+        "falta de tech en aulas",
+        "hijos sin habilidades para el futuro"
+      ],
+      "keywords_buscados": [
+        "colegio innovador Quito",
+        "educación tecnológica niños",
+        "STEM colegio bilingüe"
+      ]
     },
     "secondary": {
       "name": "Familia Aspiracional",
       "description": "Padres que quieren lo mejor para sus hijos, buscan diferenciación, sensibles a la promoción sin matrícula",
       "income_usd_month": "2000-3500",
-      "nse": ["B", "B+"],
-      "values": ["calidad educativa", "bilingüismo", "preparación futuro", "seguridad"],
-      "pain_points": ["colegios caros sin diferenciación", "matrícula elevada", "métodos obsoletos"],
-      "keywords_buscados": ["colegio bilingüe precio", "sin matrícula colegio Quito", "becas escolares Ecuador"]
+      "nse": [
+        "B",
+        "B+"
+      ],
+      "values": [
+        "calidad educativa",
+        "bilingüismo",
+        "preparación futuro",
+        "seguridad"
+      ],
+      "pain_points": [
+        "colegios caros sin diferenciación",
+        "matrícula elevada",
+        "métodos obsoletos"
+      ],
+      "keywords_buscados": [
+        "colegio bilingüe precio",
+        "sin matrícula colegio Quito",
+        "becas escolares Ecuador"
+      ]
     },
     "institutional": {
       "name": "Colegios Aliados",
@@ -137,28 +171,56 @@
   "nse_zones_quito": {
     "A": {
       "name": "NSE A — Alto",
-      "zones": ["González Suárez", "Bella Vista", "La Vieja", "Cumbayá Alta", "Punta del Este"],
+      "zones": [
+        "González Suárez",
+        "Bella Vista",
+        "La Vieja",
+        "Cumbayá Alta",
+        "Punta del Este"
+      ],
       "avg_income_usd": "7000+",
       "purchasing_power_score": 10,
       "pension_affordability": "Holgada (5% ingreso)"
     },
     "B+": {
       "name": "NSE B+ — Medio-Alto",
-      "zones": ["La Carolina", "Portugal", "Coruña", "Jipijapa", "Quito Tenis", "Cumbayá Media", "Tumbaco", "Valle de los Chillos alto"],
+      "zones": [
+        "La Carolina",
+        "Portugal",
+        "Coruña",
+        "Jipijapa",
+        "Quito Tenis",
+        "Cumbayá Media",
+        "Tumbaco",
+        "Valle de los Chillos alto"
+      ],
       "avg_income_usd": "3500-7000",
       "purchasing_power_score": 8,
       "pension_affordability": "Cómoda (5-10% ingreso)"
     },
     "B": {
       "name": "NSE B — Medio",
-      "zones": ["El Bosque", "Cotocollao", "Calderón", "Miraflores", "La Delicia", "Tumbaco baja", "Sangolquí"],
+      "zones": [
+        "El Bosque",
+        "Cotocollao",
+        "Calderón",
+        "Miraflores",
+        "La Delicia",
+        "Tumbaco baja",
+        "Sangolquí"
+      ],
       "avg_income_usd": "2000-3500",
       "purchasing_power_score": 6,
       "pension_affordability": "Ajustada (10-17% ingreso) — target con becas"
     },
     "C+": {
       "name": "NSE C+ — Medio-Bajo",
-      "zones": ["Sur de Quito", "Chillogallo", "Solanda", "Quitumbe"],
+      "zones": [
+        "Sur de Quito",
+        "Chillogallo",
+        "Solanda",
+        "Quitumbe"
+      ],
       "avg_income_usd": "1000-2000",
       "purchasing_power_score": 3,
       "pension_affordability": "No viable sin beca completa"
@@ -199,5 +261,24 @@
     ],
     "cta": "Agenda tu visita guiada gratuita",
     "urgency": "Cupos limitados para año lectivo 2026/2027"
+  },
+  "n8n_config": {
+    "leads_sheet_id": "1CdGDhEDUpHaO8Puzmw1DyCB-U34xQkoSkI_r2LQRAN4",
+    "leads_sheet_url": "https://docs.google.com/spreadsheets/d/1CdGDhEDUpHaO8Puzmw1DyCB-U34xQkoSkI_r2LQRAN4/edit",
+    "n8n_cloud_url": "https://cyberdog87.app.n8n.cloud/home/workflows",
+    "variables_required": {
+      "GOOGLE_MAPS_API_KEY": "PENDIENTE — Google Cloud Console",
+      "ANTHROPIC_API_KEY": "PENDIENTE — console.anthropic.com",
+      "BRAVE_API_KEY": "YA DISPONIBLE — en openclaw.json",
+      "LEADS_SHEET_ID": "1CdGDhEDUpHaO8Puzmw1DyCB-U34xQkoSkI_r2LQRAN4",
+      "OPENCLAW_WEBHOOK_URL": "PENDIENTE — OpenClaw webhook URL"
+    },
+    "google_sheets_tabs": [
+      "Leads Familias",
+      "Leads Colegios",
+      "Trends Weekly",
+      "Intent Signals",
+      "Competitor Intel"
+    ]
   }
 }
