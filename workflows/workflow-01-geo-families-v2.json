@@ -6,14 +6,22 @@
     {
       "parameters": {
         "rule": {
-          "interval": [{"field": "cronExpression", "expression": "0 8 * * 1,3,5"}]
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 8 * * 1,3,5"
+            }
+          ]
         }
       },
       "id": "gf2-0001",
       "name": "⏰ Trigger Lun/Mié/Vie 8AM",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.1,
-      "position": [200, 400]
+      "position": [
+        200,
+        400
+      ]
     },
     {
       "parameters": {
@@ -23,7 +31,10 @@
       "name": "⚙️ Config: 4 Sedes x 4 Queries = 16 Jobs",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [420, 400]
+      "position": [
+        420,
+        400
+      ]
     },
     {
       "parameters": {
@@ -34,38 +45,80 @@
       "name": "🔄 Loop 16 Jobs",
       "type": "n8n-nodes-base.splitInBatches",
       "typeVersion": 3,
-      "position": [640, 400]
+      "position": [
+        640,
+        400
+      ]
     },
     {
       "parameters": {
         "method": "GET",
-        "url": "https://maps.googleapis.com/maps/api/place/textsearch/json",
+        "url": "https://nominatim.openstreetmap.org/search",
         "sendQuery": true,
         "queryParameters": {
           "parameters": [
-            {"name": "query", "value": "={{ $json.query }}"},
-            {"name": "location", "value": "={{ $json.location }}"},
-            {"name": "radius", "value": "={{ $json.radius }}"},
-            {"name": "key", "value": "={{ $vars.GOOGLE_MAPS_API_KEY }}"}
+            {
+              "name": "q",
+              "value": "={{ $json.query + \" \" + $json.sede.address }}"
+            },
+            {
+              "name": "format",
+              "value": "json"
+            },
+            {
+              "name": "limit",
+              "value": "10"
+            },
+            {
+              "name": "countrycodes",
+              "value": "ec"
+            },
+            {
+              "name": "addressdetails",
+              "value": "1"
+            },
+            {
+              "name": "lat",
+              "value": "={{ $json.sede.lat }}"
+            },
+            {
+              "name": "lon",
+              "value": "={{ $json.sede.lng }}"
+            }
           ]
         },
-        "options": {}
+        "options": {},
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "EightAcademyLeadGen/1.0 (admisiones@eightacademy.ec)"
+            }
+          ]
+        }
       },
       "id": "gf2-0004",
-      "name": "🗺️ Google Places — Buscar",
+      "name": "🗺️ Nominatim — Buscar Lugar",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [860, 400]
+      "position": [
+        860,
+        400
+      ]
     },
     {
       "parameters": {
-        "jsCode": "// Parsear resultados + enriquecer con contexto de búsqueda\nconst places = $input.first().json.results || [];\nconst jobData = $('🔄 Loop 16 Jobs').first().json;\n\nif (places.length === 0) {\n  console.log(`Sin resultados para: ${jobData.query} cerca de ${jobData.sede_name}`);\n  return [];\n}\n\n// Calcular distancia aproximada al campus (Haversine simplificado)\nfunction calcDist(lat1, lng1, lat2, lng2) {\n  const R = 6371;\n  const dLat = (lat2 - lat1) * Math.PI / 180;\n  const dLng = (lng2 - lng1) * Math.PI / 180;\n  const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180) * Math.cos(lat2*Math.PI/180) * Math.sin(dLng/2)**2;\n  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));\n}\n\nreturn places.slice(0, 10).map(place => ({\n  json: {\n    // Datos del lugar\n    place_id: place.place_id,\n    name: place.name,\n    address: place.formatted_address || '',\n    rating: place.rating || 0,\n    total_ratings: place.user_ratings_total || 0,\n    lat: place.geometry?.location?.lat || 0,\n    lng: place.geometry?.location?.lng || 0,\n    place_types: (place.types || []).join(', '),\n    // Contexto de búsqueda\n    query_type: jobData.query_type,\n    query_reason: jobData.query_reason,\n    // Sede más cercana\n    sede_mas_cercana: jobData.sede_name,\n    sede_id: jobData.sede_id,\n    sede_nivel: jobData.sede_nivel,\n    sede_nse_base: jobData.sede_nse_base,\n    // Distancia calculada\n    distancia_sede_km: calcDist(\n      place.geometry?.location?.lat || 0,\n      place.geometry?.location?.lng || 0,\n      jobData.sede_lat,\n      jobData.sede_lng\n    ).toFixed(2),\n    // Metadata\n    source: 'google_places_v2',\n    discovered_at: new Date().toISOString(),\n    status: 'nuevo'\n  }\n}));\n"
+        "jsCode": "// Parsear resultados de Nominatim + enriquecer con contexto\nconst places = $input.first().json;  // Nominatim returns array directly\nconst jobData = $('🔄 Loop 16 Jobs').first().json;\n\nif (!places || !Array.isArray(places) || places.length === 0) {\n  console.log('No places found for query:', jobData.query);\n  return [];\n}\n\nconst enriched = places.slice(0, 5).map(place => {\n  const address = place.display_name || '';\n  const lat = parseFloat(place.lat) || jobData.sede.lat;\n  const lng = parseFloat(place.lon) || jobData.sede.lng;\n  \n  // Calculate distance from sede\n  const dLat = lat - jobData.sede.lat;\n  const dLng = lng - jobData.sede.lng;\n  const distKm = Math.sqrt(dLat*dLat + dLng*dLng) * 111;\n  \n  return {\n    json: {\n      place_id: place.place_id || Math.random().toString(36),\n      lead_name: place.name || address.split(',')[0],\n      lead_address: address,\n      lead_lat: lat,\n      lead_lng: lng,\n      lead_type: jobData.queryType,\n      lead_sede: jobData.sede.name,\n      lead_distancia: Math.round(distKm * 10) / 10,\n      lead_hook: jobData.queryType + ' cerca de ' + jobData.sede.name,\n      lead_perfil: 'Prospecto ' + jobData.sede.nivel + ' | ' + jobData.queryType,\n      rating: place.importance ? Math.round(place.importance * 5) : 3,\n      user_ratings_total: 10,\n      search_query: jobData.query,\n      sede_id: jobData.sede.id,\n      nse_zona: jobData.sede.nse || 'B+'\n    }\n  };\n});\n\nreturn enriched;"
       },
       "id": "gf2-0005",
       "name": "🔧 Parse + Enriquecer Resultados",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1080, 400]
+      "position": [
+        1080,
+        400
+      ]
     },
     {
       "parameters": {
@@ -76,7 +129,10 @@
       "name": "🔄 Loop Cada Lugar",
       "type": "n8n-nodes-base.splitInBatches",
       "typeVersion": 3,
-      "position": [1300, 400]
+      "position": [
+        1300,
+        400
+      ]
     },
     {
       "parameters": {
@@ -85,9 +141,18 @@
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
-            {"name": "x-api-key", "value": "={{ $vars.ANTHROPIC_API_KEY }}"},
-            {"name": "anthropic-version", "value": "2023-06-01"},
-            {"name": "content-type", "value": "application/json"}
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $vars.ANTHROPIC_API_KEY }}"
+            },
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            },
+            {
+              "name": "content-type",
+              "value": "application/json"
+            }
           ]
         },
         "sendBody": true,
@@ -99,7 +164,10 @@
       "name": "🤖 Claude — Score Familiar + NSE",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [1520, 400]
+      "position": [
+        1520,
+        400
+      ]
     },
     {
       "parameters": {
@@ -109,24 +177,37 @@
       "name": "🔧 Parse Score Familiar",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1740, 400]
+      "position": [
+        1740,
+        400
+      ]
     },
     {
       "parameters": {
         "conditions": {
-          "options": {"caseSensitive": true, "leftValue": "", "typeValidation": "strict"},
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
           "conditions": [
             {
               "id": "cond-power",
               "leftValue": "={{ $json.Score_Poder_Adquisitivo }}",
               "rightValue": 5,
-              "operator": {"type": "number", "operation": "gte"}
+              "operator": {
+                "type": "number",
+                "operation": "gte"
+              }
             },
             {
               "id": "cond-fit",
               "leftValue": "={{ $json.Score_Final }}",
               "rightValue": 5,
-              "operator": {"type": "number", "operation": "gte"}
+              "operator": {
+                "type": "number",
+                "operation": "gte"
+              }
             }
           ],
           "combinator": "and"
@@ -137,13 +218,24 @@
       "name": "⚡ ¿Adquisitivo ≥5 Y Fit ≥5?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2,
-      "position": [1960, 400]
+      "position": [
+        1960,
+        400
+      ]
     },
     {
       "parameters": {
         "operation": "append",
-        "documentId": {"__rl": true, "value": "={{ $vars.LEADS_SHEET_ID }}", "mode": "id"},
-        "sheetName": {"__rl": true, "value": "Leads Familias", "mode": "name"},
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $vars.LEADS_SHEET_ID }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Leads Familias",
+          "mode": "name"
+        },
         "columns": {
           "mappingMode": "defineBelow",
           "value": {
@@ -174,20 +266,44 @@
             "Fecha": "={{ $json.Fecha_Descubierto }}"
           }
         },
-        "options": {"cellFormat": "USER_ENTERED"}
+        "options": {
+          "cellFormat": "USER_ENTERED"
+        }
       },
       "id": "gf2-0010",
       "name": "📊 Sheets — Guardar Lead Familiar",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.4,
-      "position": [2180, 280],
-      "credentials": {"googleSheetsOAuth2Api": {"id": "FILL_GOOGLE_CRED_ID", "name": "Google Sheets (Eight Academy)"}}
+      "position": [
+        2180,
+        280
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "OB3h541M0t4njfFB",
+          "name": "Google Sheets (Eight Academy)"
+        }
+      }
     },
     {
       "parameters": {
         "conditions": {
-          "options": {"caseSensitive": true, "leftValue": "", "typeValidation": "strict"},
-          "conditions": [{"id": "cond-tier-a", "leftValue": "={{ $json.Tier }}", "rightValue": "A", "operator": {"type": "string", "operation": "equals"}}],
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "cond-tier-a",
+              "leftValue": "={{ $json.Tier }}",
+              "rightValue": "A",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
           "combinator": "and"
         },
         "options": {}
@@ -196,7 +312,10 @@
       "name": "🔥 ¿Tier A? (Hot Lead)",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2,
-      "position": [2400, 280]
+      "position": [
+        2400,
+        280
+      ]
     },
     {
       "parameters": {
@@ -211,7 +330,10 @@
       "name": "🔔 Alerta Hot Lead a OpenClaw",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [2620, 180]
+      "position": [
+        2620,
+        180
+      ]
     },
     {
       "parameters": {},
@@ -219,7 +341,10 @@
       "name": "📌 Lead B/C — Sin Alerta Inmediata",
       "type": "n8n-nodes-base.noOp",
       "typeVersion": 1,
-      "position": [2620, 400]
+      "position": [
+        2620,
+        400
+      ]
     },
     {
       "parameters": {},
@@ -227,7 +352,10 @@
       "name": "🚫 No Califica — Descartar",
       "type": "n8n-nodes-base.noOp",
       "typeVersion": 1,
-      "position": [2180, 540]
+      "position": [
+        2180,
+        540
+      ]
     },
     {
       "parameters": {
@@ -237,32 +365,232 @@
       "name": "✅ Resumen Final",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [2840, 400]
+      "position": [
+        2840,
+        400
+      ]
     }
   ],
   "connections": {
-    "⏰ Trigger Lun/Mié/Vie 8AM": {"main": [[{"node": "⚙️ Config: 4 Sedes x 4 Queries = 16 Jobs", "type": "main", "index": 0}]]},
-    "⚙️ Config: 4 Sedes x 4 Queries = 16 Jobs": {"main": [[{"node": "🔄 Loop 16 Jobs", "type": "main", "index": 0}]]},
-    "🔄 Loop 16 Jobs": {"main": [[{"node": "🗺️ Google Places — Buscar", "type": "main", "index": 0}]]},
-    "🗺️ Google Places — Buscar": {"main": [[{"node": "🔧 Parse + Enriquecer Resultados", "type": "main", "index": 0}]]},
-    "🔧 Parse + Enriquecer Resultados": {"main": [[{"node": "🔄 Loop Cada Lugar", "type": "main", "index": 0}]]},
-    "🔄 Loop Cada Lugar": {"main": [[{"node": "🤖 Claude — Score Familiar + NSE", "type": "main", "index": 0}]]},
-    "🤖 Claude — Score Familiar + NSE": {"main": [[{"node": "🔧 Parse Score Familiar", "type": "main", "index": 0}]]},
-    "🔧 Parse Score Familiar": {"main": [[{"node": "⚡ ¿Adquisitivo ≥5 Y Fit ≥5?", "type": "main", "index": 0}]]},
-    "⚡ ¿Adquisitivo ≥5 Y Fit ≥5?": {"main": [[{"node": "📊 Sheets — Guardar Lead Familiar", "type": "main", "index": 0}], [{"node": "🚫 No Califica — Descartar", "type": "main", "index": 0}]]},
-    "📊 Sheets — Guardar Lead Familiar": {"main": [[{"node": "🔥 ¿Tier A? (Hot Lead)", "type": "main", "index": 0}]]},
-    "🔥 ¿Tier A? (Hot Lead)": {"main": [[{"node": "🔔 Alerta Hot Lead a OpenClaw", "type": "main", "index": 0}], [{"node": "📌 Lead B/C — Sin Alerta Inmediata", "type": "main", "index": 0}]]},
-    "🔔 Alerta Hot Lead a OpenClaw": {"main": [[{"node": "🔄 Loop Cada Lugar", "type": "main", "index": 0}]]},
-    "📌 Lead B/C — Sin Alerta Inmediata": {"main": [[{"node": "🔄 Loop Cada Lugar", "type": "main", "index": 0}]]},
-    "🚫 No Califica — Descartar": {"main": [[{"node": "🔄 Loop Cada Lugar", "type": "main", "index": 0}]]}
+    "⏰ Trigger Lun/Mié/Vie 8AM": {
+      "main": [
+        [
+          {
+            "node": "⚙️ Config: 4 Sedes x 4 Queries = 16 Jobs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "⚙️ Config: 4 Sedes x 4 Queries = 16 Jobs": {
+      "main": [
+        [
+          {
+            "node": "🔄 Loop 16 Jobs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🔄 Loop 16 Jobs": {
+      "main": [
+        [
+          {
+            "node": "🗺️ Nominatim — Buscar Lugar",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🗺️ Nominatim — Buscar Lugar": {
+      "main": [
+        [
+          {
+            "node": "🔧 Parse + Enriquecer Resultados",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🔧 Parse + Enriquecer Resultados": {
+      "main": [
+        [
+          {
+            "node": "🔄 Loop Cada Lugar",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🔄 Loop Cada Lugar": {
+      "main": [
+        [
+          {
+            "node": "🤖 Claude — Score Familiar + NSE",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "🔄 Loop 16 Jobs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🤖 Claude — Score Familiar + NSE": {
+      "main": [
+        [
+          {
+            "node": "🔧 Parse Score Familiar",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🔧 Parse Score Familiar": {
+      "main": [
+        [
+          {
+            "node": "⚡ ¿Adquisitivo ≥5 Y Fit ≥5?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "⚡ ¿Adquisitivo ≥5 Y Fit ≥5?": {
+      "main": [
+        [
+          {
+            "node": "📊 Sheets — Guardar Lead Familiar",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "🚫 No Califica — Descartar",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "📊 Sheets — Guardar Lead Familiar": {
+      "main": [
+        [
+          {
+            "node": "🔥 ¿Tier A? (Hot Lead)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🔥 ¿Tier A? (Hot Lead)": {
+      "main": [
+        [
+          {
+            "node": "🔔 Alerta Hot Lead a OpenClaw",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "📌 Lead B/C — Sin Alerta Inmediata",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🔔 Alerta Hot Lead a OpenClaw": {
+      "main": [
+        [
+          {
+            "node": "🔄 Loop Cada Lugar",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "📌 Lead B/C — Sin Alerta Inmediata": {
+      "main": [
+        [
+          {
+            "node": "🔄 Loop Cada Lugar",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🚫 No Califica — Descartar": {
+      "main": [
+        [
+          {
+            "node": "🔄 Loop Cada Lugar",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
   },
   "active": false,
-  "settings": {"executionOrder": "v1", "saveExecutionProgress": true, "saveManualExecutions": true},
+  "settings": {
+    "executionOrder": "v1",
+    "saveExecutionProgress": true,
+    "saveManualExecutions": true
+  },
   "versionId": "ea-wf1-v2",
-  "tags": [{"name": "eight-academy"}, {"name": "geo-family"}, {"name": "v2"}, {"name": "nse-scoring"}],
+  "tags": [
+    {
+      "name": "eight-academy"
+    },
+    {
+      "name": "geo-family"
+    },
+    {
+      "name": "v2"
+    },
+    {
+      "name": "nse-scoring"
+    }
+  ],
   "_SETUP": {
-    "tabs_requeridas_en_sheet": ["Leads Familias", "Leads Colegios", "Trends Weekly", "Intent Signals"],
-    "mejoras_vs_v1": ["Busca FAMILIAS no solo colegios", "4 sedes en paralelo", "16 queries por ejecución vs 1", "Variables NSE + poder adquisitivo", "Hook personalizado por tipo de familia", "Tier A = alerta inmediata OpenClaw"],
-    "scoring_variables": {"poder_adquisitivo_score": "0-10, puede pagar $350/mes", "intent_score": "0-10, busca colegio innovador", "zona_nse": "A/B+/B/C+", "tech_affinity": "0-10", "fit_score": "0-10 encaje con EA", "score_final": "promedio ponderado"}
+    "tabs_requeridas_en_sheet": [
+      "Leads Familias",
+      "Leads Colegios",
+      "Trends Weekly",
+      "Intent Signals"
+    ],
+    "mejoras_vs_v1": [
+      "Busca FAMILIAS no solo colegios",
+      "4 sedes en paralelo",
+      "16 queries por ejecución vs 1",
+      "Variables NSE + poder adquisitivo",
+      "Hook personalizado por tipo de familia",
+      "Tier A = alerta inmediata OpenClaw"
+    ],
+    "scoring_variables": {
+      "poder_adquisitivo_score": "0-10, puede pagar $350/mes",
+      "intent_score": "0-10, busca colegio innovador",
+      "zona_nse": "A/B+/B/C+",
+      "tech_affinity": "0-10",
+      "fit_score": "0-10 encaje con EA",
+      "score_final": "promedio ponderado"
+    }
   }
 }
