@@ -1,0 +1,230 @@
+{
+  "name": "🎯 EA v2 — WF2: Intent Keywords Engine (8 Queries)",
+  "_version": "2.0",
+  "_description": "Motor de captura de intención de compra. 8 búsquedas paralelas en Brave Search detectan padres que están ACTIVAMENTE buscando colegio innovador, bilingüe, tech. Alertas de 'hot intent' inmediatas a OpenClaw.",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {"interval": [{"field": "cronExpression", "expression": "0 7 * * 2,4"}]}
+      },
+      "id": "ik2-0001",
+      "name": "⏰ Trigger Mar/Jue 7AM",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [200, 400]
+    },
+    {
+      "parameters": {
+        "jsCode": "// 8 queries de intención específicas para Eight Academy\nconst INTENT_QUERIES = [\n  // 🔴 HOT — Intención de matrícula directa\n  { query: 'matricula colegio particular Quito 2026 2027', intent_level: 'HOT', category: 'admissions_intent', reason: 'Busca activamente dónde matricular' },\n  { query: 'colegio bilingue sin matricula 2026 Ecuador', intent_level: 'HOT', category: 'promo_seeker', reason: 'Busca promoción SIN MATRÍCULA — exactamente lo que ofrecemos' },\n  // 🟠 WARM — Intención de cambio/mejora\n  { query: 'innovación educativa colegio Quito Ecuador', intent_level: 'WARM', category: 'innovation_seeker', reason: 'Valora innovación — perfil ideal Eight Academy' },\n  { query: 'emprendimiento digital niños adolescentes Ecuador', intent_level: 'WARM', category: 'entrepreneurship_parent', reason: 'Quiere emprendimiento para su hijo — único en EA' },\n  { query: 'STEM tecnología colegio primaria bachillerato Quito', intent_level: 'WARM', category: 'tech_education', reason: 'Busca educación tecnológica' },\n  { query: 'educacion no tradicional metodologia activa Ecuador', intent_level: 'WARM', category: 'alternative_ed', reason: 'No quiere educación tradicional — perfil EA' },\n  // 🟡 DISCOVERY — Relacionados con diferenciadores únicos de EA\n  { query: 'aula metaverso realidad virtual educacion Ecuador 2026', intent_level: 'DISCOVERY', category: 'vr_education', reason: 'Busca metaverso/VR — exclusivo de Eight Academy' },\n  { query: 'colegio zoo naturaleza animales aprendizaje Quito', intent_level: 'DISCOVERY', category: 'nature_education', reason: 'Interés en aprendizaje con naturaleza — Zoo Botánica' }\n];\n\nreturn INTENT_QUERIES.map(q => ({ json: q }));\n"
+      },
+      "id": "ik2-0002",
+      "name": "⚙️ Config: 8 Intent Queries",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [420, 400]
+    },
+    {
+      "parameters": {
+        "batchSize": 1,
+        "options": {}
+      },
+      "id": "ik2-0003",
+      "name": "🔄 Loop 8 Queries",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [640, 400]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "https://api.search.brave.com/res/v1/web/search",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {"name": "Accept", "value": "application/json"},
+            {"name": "X-Subscription-Token", "value": "={{ $vars.BRAVE_API_KEY }}"}
+          ]
+        },
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {"name": "q", "value": "={{ $json.query }}"},
+            {"name": "count", "value": "10"},
+            {"name": "country", "value": "ec"},
+            {"name": "search_lang", "value": "es"},
+            {"name": "freshness", "value": "pm"}
+          ]
+        },
+        "options": {}
+      },
+      "id": "ik2-0004",
+      "name": "🔍 Brave Search — Intent Query",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [860, 400]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Extraer resultados + context query\nconst searchResp = $input.first().json;\nconst queryData = $('🔄 Loop 8 Queries').first().json;\n\nconst results = searchResp.web?.results || [];\n\nif (results.length === 0) {\n  return [{ json: {\n    query: queryData.query,\n    intent_level: queryData.intent_level,\n    category: queryData.category,\n    results_count: 0,\n    results_summary: 'Sin resultados',\n    _skip: true\n  }}];\n}\n\nconst resultsSummary = results.slice(0, 8).map(r => `• ${r.title} | ${r.description || ''} | ${r.url}`).join('\\n');\n\nreturn [{ json: {\n  query: queryData.query,\n  intent_level: queryData.intent_level,\n  category: queryData.category,\n  reason: queryData.reason,\n  results_count: results.length,\n  results_summary: resultsSummary,\n  top_urls: results.slice(0, 5).map(r => r.url).join('|'),\n  _skip: false\n}}];\n"
+      },
+      "id": "ik2-0005",
+      "name": "🔧 Parse Resultados",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1080, 400]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {"caseSensitive": true, "leftValue": "", "typeValidation": "loose"},
+          "conditions": [{"id": "skip-check", "leftValue": "={{ $json._skip }}", "rightValue": true, "operator": {"type": "boolean", "operation": "notEquals"}}],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "ik2-0006",
+      "name": "⚡ ¿Tiene Resultados?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1300, 400]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {"name": "x-api-key", "value": "={{ $vars.ANTHROPIC_API_KEY }}"},
+            {"name": "anthropic-version", "value": "2023-06-01"},
+            {"name": "content-type", "value": "application/json"}
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"claude-3-5-haiku-20241022\",\n  \"max_tokens\": 1000,\n  \"messages\": [{\n    \"role\": \"user\",\n    \"content\": \"Eres el analista de inteligencia de mercado de Eight Academy (colegio bilingüe innovador en Quito, Ecuador). Analiza estos resultados de búsqueda para identificar señales de intención de compra y oportunidades para Eight Academy.\\n\\nQUERY: '{{ $json.query }}'\\nNIVEL INTENCIÓN: {{ $json.intent_level }}\\nCATEGORÍA: {{ $json.category }}\\nRAZÓN: {{ $json.reason }}\\n\\nRESULTADOS DE BÚSQUEDA:\\n{{ $json.results_summary }}\\n\\nEight Academy ofrece:\\n- Pensión $350/mes | SIN MATRÍCULA 2026/2027\\n- Aulas de Metaverso + VR\\n- Emprendimientos Digitales (único en Ecuador)\\n- Zoo Botánica\\n- Bilingüe desde inicial\\n- Becas y Semibecas\\n\\nDevuelve SOLO JSON válido:\\n{\\n  \\\"intent_strength\\\": <1-10, qué tan fuerte es la señal de compra>,\\n  \\\"opportunity_type\\\": \\\"nuevo_prospecto|switching|alianza|contenido|competencia\\\",\\n  \\\"target_audience\\\": \\\"descripción del público que busca esto\\\",\\n  \\\"eight_academy_angle\\\": \\\"cómo posicionar EA para este búsqueda\\\",\\n  \\\"organizations_found\\\": [\\\"org1\\\", \\\"org2\\\"],\\n  \\\"actionable_leads\\\": [\\\"lead/organización/blog/foro con potencial\\\"],\\n  \\\"content_opportunity\\\": \\\"tema de contenido que debería crear EA\\\",\\n  \\\"competitor_insight\\\": \\\"qué dice la competencia sobre este tema\\\",\\n  \\\"urgency\\\": \\\"alta|media|baja\\\",\\n  \\\"recommended_actions\\\": [\\\"acción 1\\\", \\\"acción 2\\\"]\\\n}\"\n  }]\n}",
+        "options": {}
+      },
+      "id": "ik2-0007",
+      "name": "🤖 Claude — Análisis de Intención",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1520, 320]
+    },
+    {
+      "parameters": {
+        "jsCode": "const aiResp = $input.first().json;\nconst rawText = aiResp.content?.[0]?.text || '{}';\nconst queryData = $('⚡ ¿Tiene Resultados?').first().json;\n\nlet ai = {};\ntry {\n  const cleaned = rawText.replace(/```json/gi,'').replace(/```/gi,'').trim();\n  ai = JSON.parse(cleaned);\n} catch(e) {\n  ai = { intent_strength: 5, opportunity_type: 'nuevo_prospecto', urgency: 'media' };\n}\n\nconst actions = (ai.recommended_actions || []).join(' | ');\nconst leads = (ai.actionable_leads || []).join(' | ');\nconst orgs = (ai.organizations_found || []).join(' | ');\n\nreturn [{ json: {\n  Semana: new Date().toISOString().split('T')[0],\n  Query: queryData.query,\n  Nivel_Intencion: queryData.intent_level,\n  Categoria: queryData.category,\n  Fuerza_Intencion: ai.intent_strength || 0,\n  Tipo_Oportunidad: ai.opportunity_type || '',\n  Audiencia_Objetivo: ai.target_audience || '',\n  Angulo_EA: ai.eight_academy_angle || '',\n  Organizaciones: orgs,\n  Leads_Accionables: leads,\n  Oportunidad_Contenido: ai.content_opportunity || '',\n  Insight_Competencia: ai.competitor_insight || '',\n  Urgencia: ai.urgency || 'media',\n  Acciones: actions,\n  _intent_strength: ai.intent_strength || 0,\n  _urgency: ai.urgency || 'media',\n  _leads_raw: ai.actionable_leads || []\n}}];\n"
+      },
+      "id": "ik2-0008",
+      "name": "🔧 Parse Intent Signal",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1740, 320]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {"__rl": true, "value": "={{ $vars.LEADS_SHEET_ID }}", "mode": "id"},
+        "sheetName": {"__rl": true, "value": "Intent Signals", "mode": "name"},
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Semana": "={{ $json.Semana }}",
+            "Query": "={{ $json.Query }}",
+            "Nivel Intención": "={{ $json.Nivel_Intencion }}",
+            "Categoría": "={{ $json.Categoria }}",
+            "Fuerza Intención": "={{ $json.Fuerza_Intencion }}",
+            "Tipo Oportunidad": "={{ $json.Tipo_Oportunidad }}",
+            "Audiencia Objetivo": "={{ $json.Audiencia_Objetivo }}",
+            "Ángulo EA": "={{ $json.Angulo_EA }}",
+            "Organizaciones": "={{ $json.Organizaciones }}",
+            "Leads Accionables": "={{ $json.Leads_Accionables }}",
+            "Oportunidad Contenido": "={{ $json.Oportunidad_Contenido }}",
+            "Insight Competencia": "={{ $json.Insight_Competencia }}",
+            "Urgencia": "={{ $json.Urgencia }}",
+            "Acciones Recomendadas": "={{ $json.Acciones }}"
+          }
+        },
+        "options": {"cellFormat": "USER_ENTERED"}
+      },
+      "id": "ik2-0009",
+      "name": "📊 Guardar Intent Signal",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.4,
+      "position": [1960, 320],
+      "credentials": {"googleSheetsOAuth2Api": {"id": "FILL_GOOGLE_CRED_ID", "name": "Google Sheets (Eight Academy)"}}
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {"caseSensitive": true, "leftValue": "", "typeValidation": "loose"},
+          "conditions": [
+            {
+              "id": "hot-check",
+              "leftValue": "={{ $json._intent_strength }}",
+              "rightValue": 7,
+              "operator": {"type": "number", "operation": "gte"}
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "ik2-0010",
+      "name": "🔥 ¿Intent ≥7? (Hot Signal)",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [2180, 320]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $vars.OPENCLAW_WEBHOOK_URL }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"text\": \"🎯 *HOT INTENT SIGNAL — Eight Academy*\\n\\n🔍 Query: `{{ $json.Query }}`\\n⚡ Nivel: *{{ $json.Nivel_Intencion }}* | Fuerza: *{{ $json._intent_strength }}/10*\\n\\n🎯 {{ $json.Angulo_EA }}\\n\\n📋 Leads accionables:\\n{{ $json.Leads_Accionables }}\\n\\n📣 Oportunidad de contenido: {{ $json.Oportunidad_Contenido }}\\n\\n✅ Acciones: {{ $json.Acciones }}\"\n}",
+        "options": {}
+      },
+      "id": "ik2-0011",
+      "name": "🔔 Alerta Hot Intent a OpenClaw",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2400, 220]
+    },
+    {
+      "parameters": {},
+      "id": "ik2-0012",
+      "name": "📌 Signal Guardada — Loop Continúa",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [2400, 440]
+    },
+    {
+      "parameters": {},
+      "id": "ik2-0013",
+      "name": "⏭️ Sin Resultados — Skip",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [1520, 540]
+    }
+  ],
+  "connections": {
+    "⏰ Trigger Mar/Jue 7AM": {"main": [[{"node": "⚙️ Config: 8 Intent Queries", "type": "main", "index": 0}]]},
+    "⚙️ Config: 8 Intent Queries": {"main": [[{"node": "🔄 Loop 8 Queries", "type": "main", "index": 0}]]},
+    "🔄 Loop 8 Queries": {"main": [[{"node": "🔍 Brave Search — Intent Query", "type": "main", "index": 0}]]},
+    "🔍 Brave Search — Intent Query": {"main": [[{"node": "🔧 Parse Resultados", "type": "main", "index": 0}]]},
+    "🔧 Parse Resultados": {"main": [[{"node": "⚡ ¿Tiene Resultados?", "type": "main", "index": 0}]]},
+    "⚡ ¿Tiene Resultados?": {"main": [[{"node": "🤖 Claude — Análisis de Intención", "type": "main", "index": 0}], [{"node": "⏭️ Sin Resultados — Skip", "type": "main", "index": 0}]]},
+    "🤖 Claude — Análisis de Intención": {"main": [[{"node": "🔧 Parse Intent Signal", "type": "main", "index": 0}]]},
+    "🔧 Parse Intent Signal": {"main": [[{"node": "📊 Guardar Intent Signal", "type": "main", "index": 0}]]},
+    "📊 Guardar Intent Signal": {"main": [[{"node": "🔥 ¿Intent ≥7? (Hot Signal)", "type": "main", "index": 0}]]},
+    "🔥 ¿Intent ≥7? (Hot Signal)": {"main": [[{"node": "🔔 Alerta Hot Intent a OpenClaw", "type": "main", "index": 0}], [{"node": "📌 Signal Guardada — Loop Continúa", "type": "main", "index": 0}]]},
+    "🔔 Alerta Hot Intent a OpenClaw": {"main": [[{"node": "🔄 Loop 8 Queries", "type": "main", "index": 0}]]},
+    "📌 Signal Guardada — Loop Continúa": {"main": [[{"node": "🔄 Loop 8 Queries", "type": "main", "index": 0}]]},
+    "⏭️ Sin Resultados — Skip": {"main": [[{"node": "🔄 Loop 8 Queries", "type": "main", "index": 0}]]}
+  },
+  "active": false,
+  "settings": {"executionOrder": "v1", "saveExecutionProgress": true},
+  "versionId": "ea-wf2-v2",
+  "tags": [{"name": "eight-academy"}, {"name": "intent-keywords"}, {"name": "v2"}]
+}

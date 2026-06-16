@@ -1,0 +1,153 @@
+{
+  "name": "🗺️ EA v2 — WF5: NSE Zone Mapper",
+  "_description": "Dado un set de coordenadas/zona, consulta Google Places para indicadores de NSE (negocios premium, clínicas privadas, colegios particulares) y calcula el poder adquisitivo de la zona. Usado por WF1 para enriquecer leads.",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "ea-nse-mapper",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "nse-0001",
+      "name": "🌐 Webhook — Consulta NSE",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [200, 400],
+      "webhookId": "ea-nse-mapper"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\"status\": \"calculating\", \"location\": \"{{ $json.body.lat }},{{ $json.body.lng }}\"}",
+        "options": {}
+      },
+      "id": "nse-0002",
+      "name": "✅ Responder Calculating",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [420, 240]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {"id": "n1", "name": "lat", "value": "={{ $json.body.lat }}", "type": "string"},
+            {"id": "n2", "name": "lng", "value": "={{ $json.body.lng }}", "type": "string"},
+            {"id": "n3", "name": "location", "value": "={{ $json.body.lat }},{{ $json.body.lng }}", "type": "string"},
+            {"id": "n4", "name": "zone_name", "value": "={{ $json.body.zone_name || 'Zona' }}", "type": "string"},
+            {"id": "n5", "name": "radius", "value": "2000", "type": "string"}
+          ]
+        },
+        "options": {}
+      },
+      "id": "nse-0003",
+      "name": "💾 Extraer Coordenadas",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [420, 480]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "https://maps.googleapis.com/maps/api/place/textsearch/json",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {"name": "query", "value": "clínica privada hospital premium"},
+            {"name": "location", "value": "={{ $json.location }}"},
+            {"name": "radius", "value": "={{ $json.radius }}"},
+            {"name": "key", "value": "={{ $vars.GOOGLE_MAPS_API_KEY }}"}
+          ]
+        },
+        "options": {}
+      },
+      "id": "nse-0004",
+      "name": "🏥 Places — Clínicas Privadas",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [640, 240]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "https://maps.googleapis.com/maps/api/place/textsearch/json",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {"name": "query", "value": "colegio particular bilingue privado"},
+            {"name": "location", "value": "={{ $json.location }}"},
+            {"name": "radius", "value": "={{ $json.radius }}"},
+            {"name": "key", "value": "={{ $vars.GOOGLE_MAPS_API_KEY }}"}
+          ]
+        },
+        "options": {}
+      },
+      "id": "nse-0005",
+      "name": "🎓 Places — Colegios Privados",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [640, 400]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "https://maps.googleapis.com/maps/api/place/textsearch/json",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {"name": "query", "value": "gym premium restaurant internacional café starbucks"},
+            {"name": "location", "value": "={{ $json.location }}"},
+            {"name": "radius", "value": "={{ $json.radius }}"},
+            {"name": "key", "value": "={{ $vars.GOOGLE_MAPS_API_KEY }}"}
+          ]
+        },
+        "options": {}
+      },
+      "id": "nse-0006",
+      "name": "💎 Places — Negocios Premium",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [640, 560]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Combinar los 3 resultados y calcular NSE score\nconst allItems = $input.all();\nconst zoneData = $('💾 Extraer Coordenadas').first().json;\n\nlet clinicas_count = 0;\nlet colegios_privados_count = 0;\nlet negocios_premium_count = 0;\nlet avg_rating = 0;\nlet rating_sum = 0;\nlet rating_count = 0;\n\nallItems.forEach((item, idx) => {\n  const results = item.json.results || [];\n  if (idx === 0) clinicas_count = results.length;\n  else if (idx === 1) colegios_privados_count = results.length;\n  else negocios_premium_count = results.length;\n  \n  results.forEach(r => {\n    if (r.rating) { rating_sum += r.rating; rating_count++; }\n  });\n});\n\navg_rating = rating_count > 0 ? (rating_sum / rating_count).toFixed(1) : 0;\n\n// Calcular NSE score (0-10)\nconst nse_score = Math.min(10, Math.round(\n  (Math.min(clinicas_count, 5) / 5) * 3 +      // Clínicas: hasta 3 pts\n  (Math.min(colegios_privados_count, 5) / 5) * 4 + // Colegios privados: hasta 4 pts\n  (Math.min(negocios_premium_count, 10) / 10) * 3  // Negocios premium: hasta 3 pts\n));\n\n// Determinar NSE tier\nlet zona_nse = 'C+';\nif (nse_score >= 8) zona_nse = 'A';\nelse if (nse_score >= 6) zona_nse = 'B+';\nelse if (nse_score >= 4) zona_nse = 'B';\n\n// Calcular poder adquisitivo estimado ($USD/mes)\nconst poder_adq_map = { 'A': 7000, 'B+': 4500, 'B': 2500, 'C+': 1200 };\nconst ingreso_estimado = poder_adq_map[zona_nse];\nconst puede_pagar_350 = ingreso_estimado >= 2000;\nconst recomienda_becas = ingreso_estimado < 3000;\n\nreturn [{ json: {\n  zone_name: zoneData.zone_name,\n  location: zoneData.location,\n  // Indicadores\n  clinicas_privadas: clinicas_count,\n  colegios_privados: colegios_privados_count,\n  negocios_premium: negocios_premium_count,\n  avg_rating_zona: avg_rating,\n  // Scores\n  nse_score: nse_score,\n  zona_nse: zona_nse,\n  ingreso_estimado_usd: ingreso_estimado,\n  poder_adquisitivo_score: nse_score,\n  puede_pagar_pension_350: puede_pagar_350,\n  recomendar_becas: recomienda_becas,\n  // Segmentación EA\n  segmento_ea: nse_score >= 6 ? 'Target Principal' : (nse_score >= 4 ? 'Target con Becas' : 'No Target'),\n  promo_recomendada: ingreso_estimado >= 5000 ? 'Exclusividad + Metaverso' : (ingreso_estimado >= 3000 ? 'Innovación + Sin Matrícula' : 'Sin Matrícula + Becas'),\n  analyzed_at: new Date().toISOString()\n}}];\n"
+      },
+      "id": "nse-0007",
+      "name": "🔧 Calcular NSE Score",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [860, 400]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $vars.OPENCLAW_WEBHOOK_URL }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ text: `🗺️ *NSE Zone Report*\\n\\n📍 *${$json.zone_name}*\\n💰 NSE: *${$json.zona_nse}* (Score ${$json.nse_score}/10)\\n💵 Ingreso estimado: ~$${$json.ingreso_estimado_usd}/mes\\n\\n*Indicadores:*\\n• Clínicas privadas: ${$json.clinicas_privadas}\\n• Colegios privados: ${$json.colegios_privados}\\n• Negocios premium: ${$json.negocios_premium}\\n\\n🎯 Segmento EA: ${$json.segmento_ea}\\n📣 Promo: ${$json.promo_recomendada}\\n✅ ¿Puede pagar $350/mes? ${$json.puede_pagar_pension_350 ? 'SÍ' : 'NO'}` }) }}",
+        "options": {}
+      },
+      "id": "nse-0008",
+      "name": "🔔 Enviar NSE Report a OpenClaw",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1080, 400]
+    }
+  ],
+  "connections": {
+    "🌐 Webhook — Consulta NSE": {"main": [[{"node": "✅ Responder Calculating", "type": "main", "index": 0}, {"node": "💾 Extraer Coordenadas", "type": "main", "index": 0}]]},
+    "💾 Extraer Coordenadas": {"main": [[{"node": "🏥 Places — Clínicas Privadas", "type": "main", "index": 0}, {"node": "🎓 Places — Colegios Privados", "type": "main", "index": 0}, {"node": "💎 Places — Negocios Premium", "type": "main", "index": 0}]]},
+    "🏥 Places — Clínicas Privadas": {"main": [[{"node": "🔧 Calcular NSE Score", "type": "main", "index": 0}]]},
+    "🎓 Places — Colegios Privados": {"main": [[{"node": "🔧 Calcular NSE Score", "type": "main", "index": 1}]]},
+    "💎 Places — Negocios Premium": {"main": [[{"node": "🔧 Calcular NSE Score", "type": "main", "index": 2}]]},
+    "🔧 Calcular NSE Score": {"main": [[{"node": "🔔 Enviar NSE Report a OpenClaw", "type": "main", "index": 0}]]}
+  },
+  "active": false,
+  "settings": {"executionOrder": "v1"},
+  "versionId": "ea-wf5-v1",
+  "tags": [{"name": "eight-academy"}, {"name": "nse-mapper"}, {"name": "v2"}],
+  "_WEBHOOK_URL": "https://cyberdog87.app.n8n.cloud/webhook/ea-nse-mapper",
+  "_USAGE": "POST {lat: -0.1950, lng: -78.4860, zone_name: 'La Carolina'} para obtener score NSE de esa zona"
+}

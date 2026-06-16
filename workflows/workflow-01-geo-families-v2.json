@@ -1,0 +1,268 @@
+{
+  "name": "🏠 EA v2 — WF1: Geo Family Discovery (Multi-Sede)",
+  "_version": "2.0",
+  "_description": "Busca FAMILIAS (no solo colegios) en 10km de cada una de las 4 sedes de Eight Academy. 4 queries x sede = hasta 80 leads potenciales por ejecución. Scoring con NSE + poder adquisitivo para filtrar familias que pueden pagar $350/mes.",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [{"field": "cronExpression", "expression": "0 8 * * 1,3,5"}]
+        }
+      },
+      "id": "gf2-0001",
+      "name": "⏰ Trigger Lun/Mié/Vie 8AM",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [200, 400]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Config central de Eight Academy — 4 sedes x 4 query types\nconst SEDES = [\n  { id: 'kids', name: 'Eight Kids', address: 'Los Alhelíes E15-44, Quito', lat: -0.2180, lng: -78.4890, nivel: 'Inicial', nse_base: 'B+' },\n  { id: 'primaria', name: 'Eight Academy Primaria', address: 'Av. 6 de Diciembre y Manuel Zambrano, Quito', lat: -0.1950, lng: -78.4860, nivel: 'Primaria', nse_base: 'A' },\n  { id: 'secundaria', name: 'Eight Academy Secundaria', address: 'Av. La Prensa y Nicolás López, Quito', lat: -0.1267, lng: -78.5003, nivel: 'Secundaria', nse_base: 'B+' },\n  { id: 'zoobotanica', name: 'Zoo Botánica Academy', address: 'Guayllabamba, Ecuador', lat: -0.0639, lng: -78.3618, nivel: 'Todos', nse_base: 'B' }\n];\n\n// Tipos de prospecto a buscar (proxies de familias con hijos y poder adquisitivo)\nconst QUERY_TYPES = [\n  { type: 'family_health', query: 'pediatría clínica infantil', reason: 'Familias con hijos, investigan salud = invierten en educación' },\n  { type: 'education_investment', query: 'academia refuerzo académico inglés niños', reason: 'Padres que invierten en educación adicional = perfil Eight Academy' },\n  { type: 'premium_residential', query: 'urbanización conjunto residencial privado', reason: 'Hogares en zonas cerradas = NSE B+ mínimo' },\n  { type: 'premium_lifestyle', query: 'gym premium club deportivo familiar', reason: 'Estilo de vida premium = pueden pagar $350/mes' }\n];\n\n// Generar combinaciones sede x query\nconst jobs = [];\nfor (const sede of SEDES) {\n  for (const qtype of QUERY_TYPES) {\n    jobs.push({\n      sede_id: sede.id,\n      sede_name: sede.name,\n      sede_address: sede.address,\n      sede_lat: sede.lat,\n      sede_lng: sede.lng,\n      sede_nivel: sede.nivel,\n      sede_nse_base: sede.nse_base,\n      query: qtype.query,\n      query_type: qtype.type,\n      query_reason: qtype.reason,\n      location: `${sede.lat},${sede.lng}`,\n      radius: 10000\n    });\n  }\n}\n\nconsole.log(`Generados ${jobs.length} jobs de búsqueda (${SEDES.length} sedes x ${QUERY_TYPES.length} query types)`);\nreturn jobs.map(j => ({ json: j }));\n"
+      },
+      "id": "gf2-0002",
+      "name": "⚙️ Config: 4 Sedes x 4 Queries = 16 Jobs",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [420, 400]
+    },
+    {
+      "parameters": {
+        "batchSize": 1,
+        "options": {}
+      },
+      "id": "gf2-0003",
+      "name": "🔄 Loop 16 Jobs",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [640, 400]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "https://maps.googleapis.com/maps/api/place/textsearch/json",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {"name": "query", "value": "={{ $json.query }}"},
+            {"name": "location", "value": "={{ $json.location }}"},
+            {"name": "radius", "value": "={{ $json.radius }}"},
+            {"name": "key", "value": "={{ $vars.GOOGLE_MAPS_API_KEY }}"}
+          ]
+        },
+        "options": {}
+      },
+      "id": "gf2-0004",
+      "name": "🗺️ Google Places — Buscar",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [860, 400]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Parsear resultados + enriquecer con contexto de búsqueda\nconst places = $input.first().json.results || [];\nconst jobData = $('🔄 Loop 16 Jobs').first().json;\n\nif (places.length === 0) {\n  console.log(`Sin resultados para: ${jobData.query} cerca de ${jobData.sede_name}`);\n  return [];\n}\n\n// Calcular distancia aproximada al campus (Haversine simplificado)\nfunction calcDist(lat1, lng1, lat2, lng2) {\n  const R = 6371;\n  const dLat = (lat2 - lat1) * Math.PI / 180;\n  const dLng = (lng2 - lng1) * Math.PI / 180;\n  const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180) * Math.cos(lat2*Math.PI/180) * Math.sin(dLng/2)**2;\n  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));\n}\n\nreturn places.slice(0, 10).map(place => ({\n  json: {\n    // Datos del lugar\n    place_id: place.place_id,\n    name: place.name,\n    address: place.formatted_address || '',\n    rating: place.rating || 0,\n    total_ratings: place.user_ratings_total || 0,\n    lat: place.geometry?.location?.lat || 0,\n    lng: place.geometry?.location?.lng || 0,\n    place_types: (place.types || []).join(', '),\n    // Contexto de búsqueda\n    query_type: jobData.query_type,\n    query_reason: jobData.query_reason,\n    // Sede más cercana\n    sede_mas_cercana: jobData.sede_name,\n    sede_id: jobData.sede_id,\n    sede_nivel: jobData.sede_nivel,\n    sede_nse_base: jobData.sede_nse_base,\n    // Distancia calculada\n    distancia_sede_km: calcDist(\n      place.geometry?.location?.lat || 0,\n      place.geometry?.location?.lng || 0,\n      jobData.sede_lat,\n      jobData.sede_lng\n    ).toFixed(2),\n    // Metadata\n    source: 'google_places_v2',\n    discovered_at: new Date().toISOString(),\n    status: 'nuevo'\n  }\n}));\n"
+      },
+      "id": "gf2-0005",
+      "name": "🔧 Parse + Enriquecer Resultados",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1080, 400]
+    },
+    {
+      "parameters": {
+        "batchSize": 1,
+        "options": {}
+      },
+      "id": "gf2-0006",
+      "name": "🔄 Loop Cada Lugar",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [1300, 400]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {"name": "x-api-key", "value": "={{ $vars.ANTHROPIC_API_KEY }}"},
+            {"name": "anthropic-version", "value": "2023-06-01"},
+            {"name": "content-type", "value": "application/json"}
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"claude-3-haiku-20240307\",\n  \"max_tokens\": 700,\n  \"messages\": [{\n    \"role\": \"user\",\n    \"content\": \"Eres el sistema de calificación de leads de Eight Academy, un colegio bilingüe innovador en Quito, Ecuador con las siguientes características únicas: Aulas de Metaverso, Emprendimientos Digitales, Zoo Botánica, $350/mes de pensión, SIN MATRÍCULA para 2026/2027.\\n\\nAnaliza este negocio/lugar encontrado cerca de la sede {{ $json.sede_mas_cercana }} ({{ $json.sede_nivel }}) como INDICADOR DE FAMILIAS PROSPECTOS.\\n\\nLUGAR ANALIZADO:\\n- Nombre: {{ $json.name }}\\n- Dirección: {{ $json.address }}\\n- Tipo: {{ $json.query_type }} ({{ $json.query_reason }})\\n- Rating: {{ $json.rating }}/5 ({{ $json.total_ratings }} reseñas)\\n- Tipos de lugar: {{ $json.place_types }}\\n- Distancia a sede: {{ $json.distancia_sede_km }} km\\n- NSE base de la zona: {{ $json.sede_nse_base }}\\n\\nEvalúa y devuelve SOLO JSON válido:\\n{\\n  \\\"poder_adquisitivo_score\\\": <0-10, puede pagar $350/mes>,\\n  \\\"intent_score\\\": <0-10, probabilidad de buscar colegio innovador>,\\n  \\\"zona_nse\\\": \\\"A|B+|B|C+\\\",\\n  \\\"tech_affinity\\\": <0-10, valores tecnológicos>,\\n  \\\"fit_score\\\": <0-10, encaje con Eight Academy>,\\n  \\\"score_final\\\": <0-10, promedio ponderado>,\\n  \\\"tier\\\": \\\"A|B|C\\\",\\n  \\\"perfil_familiar\\\": \\\"descripción en 10 palabras\\\",\\n  \\\"hook_personalizado\\\": \\\"argumento específico para este tipo de familia\\\",\\n  \\\"canal_contacto\\\": \\\"whatsapp|email|visita|llamada\\\",\\n  \\\"mensaje_promo\\\": \\\"menciona sin matrícula o becas según NSE\\\",\\n  \\\"urgencia\\\": \\\"alta|media|baja\\\",\\n  \\\"accion_recomendada\\\": \\\"acción específica en 10 palabras\\\"\\\n}\"\n  }]\n}",
+        "options": {}
+      },
+      "id": "gf2-0007",
+      "name": "🤖 Claude — Score Familiar + NSE",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1520, 400]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Combinar datos del lugar + análisis IA\nconst aiResp = $input.first().json;\nconst rawText = aiResp.content?.[0]?.text || '{}';\nconst placeData = $('🔄 Loop Cada Lugar').first().json;\n\nlet ai = {};\ntry {\n  const cleaned = rawText.replace(/```json/gi, '').replace(/```/gi, '').trim();\n  ai = JSON.parse(cleaned);\n} catch(e) {\n  ai = { poder_adquisitivo_score: 5, intent_score: 5, zona_nse: 'B', tech_affinity: 5, fit_score: 5, score_final: 5, tier: 'B', perfil_familiar: 'Familia media Quito', hook_personalizado: 'Sin matrícula 2026/2027', canal_contacto: 'whatsapp', mensaje_promo: 'Conoce más sin compromiso', urgencia: 'media', accion_recomendada: 'Contactar por WhatsApp' };\n}\n\nreturn [{\n  json: {\n    // CRM Fields\n    Nombre_Lugar: placeData.name,\n    Tipo_Prospecto: placeData.query_type,\n    Direccion: placeData.address,\n    Sede_Mas_Cercana: placeData.sede_mas_cercana,\n    Nivel_Sede: placeData.sede_nivel,\n    Distancia_Sede_km: placeData.distancia_sede_km,\n    Rating_Google: placeData.rating,\n    Total_Resenas: placeData.total_ratings,\n    Lat: placeData.lat,\n    Lng: placeData.lng,\n    // AI Scoring\n    Score_Poder_Adquisitivo: ai.poder_adquisitivo_score || 0,\n    Score_Intencion: ai.intent_score || 0,\n    Score_Tech_Affinity: ai.tech_affinity || 0,\n    Score_Fit_EightAcademy: ai.fit_score || 0,\n    Score_Final: ai.score_final || 0,\n    Zona_NSE: ai.zona_nse || 'B',\n    Tier: ai.tier || 'C',\n    Perfil_Familiar: ai.perfil_familiar || '',\n    Hook_Personalizado: ai.hook_personalizado || '',\n    Canal_Contacto: ai.canal_contacto || 'whatsapp',\n    Mensaje_Promo: ai.mensaje_promo || '',\n    Urgencia: ai.urgencia || 'media',\n    Accion_Recomendada: ai.accion_recomendada || '',\n    // Metadata\n    Estado: 'Nuevo',\n    Fuente: 'Geo Family Discovery v2',\n    Fecha_Descubierto: placeData.discovered_at,\n    Place_ID: placeData.place_id\n  }\n}];\n"
+      },
+      "id": "gf2-0008",
+      "name": "🔧 Parse Score Familiar",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1740, 400]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {"caseSensitive": true, "leftValue": "", "typeValidation": "strict"},
+          "conditions": [
+            {
+              "id": "cond-power",
+              "leftValue": "={{ $json.Score_Poder_Adquisitivo }}",
+              "rightValue": 5,
+              "operator": {"type": "number", "operation": "gte"}
+            },
+            {
+              "id": "cond-fit",
+              "leftValue": "={{ $json.Score_Final }}",
+              "rightValue": 5,
+              "operator": {"type": "number", "operation": "gte"}
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "gf2-0009",
+      "name": "⚡ ¿Adquisitivo ≥5 Y Fit ≥5?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1960, 400]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {"__rl": true, "value": "={{ $vars.LEADS_SHEET_ID }}", "mode": "id"},
+        "sheetName": {"__rl": true, "value": "Leads Familias", "mode": "name"},
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Nombre Lugar": "={{ $json.Nombre_Lugar }}",
+            "Tipo Prospecto": "={{ $json.Tipo_Prospecto }}",
+            "Dirección": "={{ $json.Direccion }}",
+            "Sede Más Cercana": "={{ $json.Sede_Mas_Cercana }}",
+            "Nivel": "={{ $json.Nivel_Sede }}",
+            "Distancia (km)": "={{ $json.Distancia_Sede_km }}",
+            "Score Final": "={{ $json.Score_Final }}",
+            "Score Poder Adq.": "={{ $json.Score_Poder_Adquisitivo }}",
+            "Score Intención": "={{ $json.Score_Intencion }}",
+            "Score Tech": "={{ $json.Score_Tech_Affinity }}",
+            "Score Fit EA": "={{ $json.Score_Fit_EightAcademy }}",
+            "Zona NSE": "={{ $json.Zona_NSE }}",
+            "Tier": "={{ $json.Tier }}",
+            "Perfil Familiar": "={{ $json.Perfil_Familiar }}",
+            "Hook Personalizado": "={{ $json.Hook_Personalizado }}",
+            "Canal Contacto": "={{ $json.Canal_Contacto }}",
+            "Mensaje Promo": "={{ $json.Mensaje_Promo }}",
+            "Urgencia": "={{ $json.Urgencia }}",
+            "Acción Recomendada": "={{ $json.Accion_Recomendada }}",
+            "Rating Google": "={{ $json.Rating_Google }}",
+            "Lat": "={{ $json.Lat }}",
+            "Lng": "={{ $json.Lng }}",
+            "Estado": "Nuevo",
+            "Fuente": "Geo Family v2",
+            "Fecha": "={{ $json.Fecha_Descubierto }}"
+          }
+        },
+        "options": {"cellFormat": "USER_ENTERED"}
+      },
+      "id": "gf2-0010",
+      "name": "📊 Sheets — Guardar Lead Familiar",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.4,
+      "position": [2180, 280],
+      "credentials": {"googleSheetsOAuth2Api": {"id": "FILL_GOOGLE_CRED_ID", "name": "Google Sheets (Eight Academy)"}}
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {"caseSensitive": true, "leftValue": "", "typeValidation": "strict"},
+          "conditions": [{"id": "cond-tier-a", "leftValue": "={{ $json.Tier }}", "rightValue": "A", "operator": {"type": "string", "operation": "equals"}}],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "gf2-0011",
+      "name": "🔥 ¿Tier A? (Hot Lead)",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [2400, 280]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $vars.OPENCLAW_WEBHOOK_URL }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"text\": \"🔥 *HOT LEAD Familiar — Tier A*\\n\\n📍 *{{ $json.Nombre_Lugar }}*\\n🏫 Sede: {{ $json.Sede_Mas_Cercana }} ({{ $json.Distancia_Sede_km }}km)\\n💰 NSE: *{{ $json.Zona_NSE }}* | Adquisitivo: {{ $json.Score_Poder_Adquisitivo }}/10\\n🎯 Fit EA: {{ $json.Score_Fit_EightAcademy }}/10 | Score Final: *{{ $json.Score_Final }}/10*\\n👨‍👩‍👧 {{ $json.Perfil_Familiar }}\\n💬 Hook: {{ $json.Hook_Personalizado }}\\n📲 Canal: {{ $json.Canal_Contacto }} | Urgencia: {{ $json.Urgencia }}\\n✅ Acción: {{ $json.Accion_Recomendada }}\"\n}",
+        "options": {}
+      },
+      "id": "gf2-0012",
+      "name": "🔔 Alerta Hot Lead a OpenClaw",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2620, 180]
+    },
+    {
+      "parameters": {},
+      "id": "gf2-0013",
+      "name": "📌 Lead B/C — Sin Alerta Inmediata",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [2620, 400]
+    },
+    {
+      "parameters": {},
+      "id": "gf2-0014",
+      "name": "🚫 No Califica — Descartar",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [2180, 540]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Resumen del ciclo completo (cuando Loop termina)\nconst allLeads = $input.all();\nconsole.log(`Ciclo completado. Total ejecutados: ${allLeads.length}`);\nreturn [{ json: { status: 'completed', timestamp: new Date().toISOString() } }];\n"
+      },
+      "id": "gf2-0015",
+      "name": "✅ Resumen Final",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2840, 400]
+    }
+  ],
+  "connections": {
+    "⏰ Trigger Lun/Mié/Vie 8AM": {"main": [[{"node": "⚙️ Config: 4 Sedes x 4 Queries = 16 Jobs", "type": "main", "index": 0}]]},
+    "⚙️ Config: 4 Sedes x 4 Queries = 16 Jobs": {"main": [[{"node": "🔄 Loop 16 Jobs", "type": "main", "index": 0}]]},
+    "🔄 Loop 16 Jobs": {"main": [[{"node": "🗺️ Google Places — Buscar", "type": "main", "index": 0}]]},
+    "🗺️ Google Places — Buscar": {"main": [[{"node": "🔧 Parse + Enriquecer Resultados", "type": "main", "index": 0}]]},
+    "🔧 Parse + Enriquecer Resultados": {"main": [[{"node": "🔄 Loop Cada Lugar", "type": "main", "index": 0}]]},
+    "🔄 Loop Cada Lugar": {"main": [[{"node": "🤖 Claude — Score Familiar + NSE", "type": "main", "index": 0}]]},
+    "🤖 Claude — Score Familiar + NSE": {"main": [[{"node": "🔧 Parse Score Familiar", "type": "main", "index": 0}]]},
+    "🔧 Parse Score Familiar": {"main": [[{"node": "⚡ ¿Adquisitivo ≥5 Y Fit ≥5?", "type": "main", "index": 0}]]},
+    "⚡ ¿Adquisitivo ≥5 Y Fit ≥5?": {"main": [[{"node": "📊 Sheets — Guardar Lead Familiar", "type": "main", "index": 0}], [{"node": "🚫 No Califica — Descartar", "type": "main", "index": 0}]]},
+    "📊 Sheets — Guardar Lead Familiar": {"main": [[{"node": "🔥 ¿Tier A? (Hot Lead)", "type": "main", "index": 0}]]},
+    "🔥 ¿Tier A? (Hot Lead)": {"main": [[{"node": "🔔 Alerta Hot Lead a OpenClaw", "type": "main", "index": 0}], [{"node": "📌 Lead B/C — Sin Alerta Inmediata", "type": "main", "index": 0}]]},
+    "🔔 Alerta Hot Lead a OpenClaw": {"main": [[{"node": "🔄 Loop Cada Lugar", "type": "main", "index": 0}]]},
+    "📌 Lead B/C — Sin Alerta Inmediata": {"main": [[{"node": "🔄 Loop Cada Lugar", "type": "main", "index": 0}]]},
+    "🚫 No Califica — Descartar": {"main": [[{"node": "🔄 Loop Cada Lugar", "type": "main", "index": 0}]]}
+  },
+  "active": false,
+  "settings": {"executionOrder": "v1", "saveExecutionProgress": true, "saveManualExecutions": true},
+  "versionId": "ea-wf1-v2",
+  "tags": [{"name": "eight-academy"}, {"name": "geo-family"}, {"name": "v2"}, {"name": "nse-scoring"}],
+  "_SETUP": {
+    "tabs_requeridas_en_sheet": ["Leads Familias", "Leads Colegios", "Trends Weekly", "Intent Signals"],
+    "mejoras_vs_v1": ["Busca FAMILIAS no solo colegios", "4 sedes en paralelo", "16 queries por ejecución vs 1", "Variables NSE + poder adquisitivo", "Hook personalizado por tipo de familia", "Tier A = alerta inmediata OpenClaw"],
+    "scoring_variables": {"poder_adquisitivo_score": "0-10, puede pagar $350/mes", "intent_score": "0-10, busca colegio innovador", "zona_nse": "A/B+/B/C+", "tech_affinity": "0-10", "fit_score": "0-10 encaje con EA", "score_final": "promedio ponderado"}
+  }
+}

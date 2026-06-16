@@ -1,0 +1,184 @@
+{
+  "name": "🔎 EA v2 — WF6: Competitor Gap Intelligence",
+  "_description": "Detecta familias INSATISFECHAS en colegios competidores. Monitorea reseñas negativas, quejas en redes sociales, y señales de switching. Estos son leads CALIENTES — ya quieren cambiar de colegio.",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {"interval": [{"field": "cronExpression", "expression": "0 8 * * 3"}]}
+      },
+      "id": "cg-0001",
+      "name": "⏰ Trigger Miércoles 8AM",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [200, 400]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Competidores a monitorear + queries de switching intent\nconst COMPETITOR_QUERIES = [\n  // Queja directa a competidores\n  { query: 'quejas colegios Quito problemas educación 2026', intent: 'switching', priority: 'hot' },\n  { query: 'cambiar colegio Quito mejor opción educativa', intent: 'switching', priority: 'hot' },\n  { query: 'colegio bilingue Quito malo problemas quejas', intent: 'dissatisfied', priority: 'hot' },\n  // Búsqueda de alternativas\n  { query: 'alternativas educativas Quito innovacion diferente', intent: 'exploring', priority: 'warm' },\n  { query: 'por que cambiar de colegio educación tradicional anticuada', intent: 'awareness', priority: 'warm' },\n  // Gap de Eight Academy vs competencia\n  { query: 'colegio emprendimientos digitales tecnología Ecuador', intent: 'unique_feature', priority: 'warm' },\n  { query: 'educación metaverso realidad virtual niños Ecuador', intent: 'unique_feature', priority: 'warm' },\n  // Temporada de matrículas\n  { query: 'cambio colegio inscripcion nueva matricula Quito 2026', intent: 'enrollment_switch', priority: 'hot' }\n];\n\nreturn COMPETITOR_QUERIES.map(q => ({ json: q }));\n"
+      },
+      "id": "cg-0002",
+      "name": "⚙️ Config: 8 Competitor Queries",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [420, 400]
+    },
+    {
+      "parameters": {
+        "batchSize": 1,
+        "options": {}
+      },
+      "id": "cg-0003",
+      "name": "🔄 Loop Competitor Queries",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [640, 400]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "https://api.search.brave.com/res/v1/web/search",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {"name": "Accept", "value": "application/json"},
+            {"name": "X-Subscription-Token", "value": "={{ $vars.BRAVE_API_KEY }}"}
+          ]
+        },
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {"name": "q", "value": "={{ $json.query }}"},
+            {"name": "count", "value": "10"},
+            {"name": "country", "value": "ec"},
+            {"name": "freshness", "value": "pm"}
+          ]
+        },
+        "options": {}
+      },
+      "id": "cg-0004",
+      "name": "🔍 Brave — Competitor Gap Search",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [860, 400]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {"name": "x-api-key", "value": "={{ $vars.ANTHROPIC_API_KEY }}"},
+            {"name": "anthropic-version", "value": "2023-06-01"},
+            {"name": "content-type", "value": "application/json"}
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"claude-3-5-haiku-20241022\",\n  \"max_tokens\": 1000,\n  \"messages\": [{\n    \"role\": \"user\",\n    \"content\": \"Eres el analista de inteligencia competitiva de Eight Academy. Analiza estos resultados de búsqueda para identificar familias o comunidades insatisfechas con su colegio actual que podrían estar listos para cambiar.\\n\\nEight Academy ofrece lo que muchos colegios NO tienen:\\n- Aulas de Metaverso y Realidad Virtual\\n- Emprendimientos Digitales como materia (ÚNICO en Ecuador)\\n- Zoo Botánica (ÚNICO)\\n- $350/mes SIN MATRÍCULA 2026/2027\\n- Becas y Semibecas\\n- 4 campus en Quito\\n\\nQUERY: '{{ $('🔄 Loop Competitor Queries').first().json.query }}'\\nINTENT: {{ $('🔄 Loop Competitor Queries').first().json.intent }}\\nPRIORIDAD: {{ $('🔄 Loop Competitor Queries').first().json.priority }}\\n\\nRESULTADOS:\\n{{ ($input.first().json.web?.results || []).slice(0,8).map(r => `• ${r.title}: ${r.description || ''}`).join('\\n') }}\\n\\nDevuelve JSON:\\n{\\n  \\\"hot_leads_found\\\": true,\\n  \\\"switching_signals\\\": [\\\"señal 1\\\", \\\"señal 2\\\"],\\n  \\\"target_communities\\\": [\\\"blog/foro/grupo con familias buscando cambio\\\"],\\n  \\\"ea_competitive_advantage\\\": \\\"ventaja específica de EA para este segmento\\\",\\n  \\\"recommended_message\\\": \\\"mensaje de 2 líneas para familias que quieren cambiar\\\",\\n  \\\"urgency\\\": \\\"alta|media|baja\\\",\\n  \\\"competitors_mentioned\\\": [\\\"competidor1\\\"],\\n  \\\"gap_analysis\\\": \\\"qué NO tienen los competidores que SÍ tiene EA\\\",\\n  \\\"action_items\\\": [\\\"acción 1\\\", \\\"acción 2\\\"]\\\n}\"\n  }]\n}",
+        "options": {}
+      },
+      "id": "cg-0005",
+      "name": "🤖 Claude — Gap Analysis",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1080, 400]
+    },
+    {
+      "parameters": {
+        "jsCode": "const aiResp = $input.first().json;\nconst rawText = aiResp.content?.[0]?.text || '{}';\nconst queryData = $('🔄 Loop Competitor Queries').first().json;\n\nlet ai = {};\ntry {\n  const cleaned = rawText.replace(/```json/gi,'').replace(/```/gi,'').trim();\n  ai = JSON.parse(cleaned);\n} catch(e) {\n  ai = { hot_leads_found: false, urgency: 'baja' };\n}\n\nreturn [{ json: {\n  Semana: new Date().toISOString().split('T')[0],\n  Query: queryData.query,\n  Intent_Type: queryData.intent,\n  Priority: queryData.priority,\n  Hot_Leads_Found: ai.hot_leads_found || false,\n  Switching_Signals: (ai.switching_signals || []).join(' | '),\n  Target_Communities: (ai.target_communities || []).join(' | '),\n  Ventaja_EA: ai.ea_competitive_advantage || '',\n  Mensaje_Recomendado: ai.recommended_message || '',\n  Urgencia: ai.urgency || 'baja',\n  Competidores_Mencionados: (ai.competitors_mentioned || []).join(', '),\n  Gap_Analysis: ai.gap_analysis || '',\n  Acciones: (ai.action_items || []).join(' | '),\n  _hot: ai.hot_leads_found && ai.urgency === 'alta',\n  _msg: ai.recommended_message || ''\n}}];\n"
+      },
+      "id": "cg-0006",
+      "name": "🔧 Parse Gap Analysis",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1300, 400]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {"__rl": true, "value": "={{ $vars.LEADS_SHEET_ID }}", "mode": "id"},
+        "sheetName": {"__rl": true, "value": "Competitor Intel", "mode": "name"},
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Semana": "={{ $json.Semana }}",
+            "Query": "={{ $json.Query }}",
+            "Intent": "={{ $json.Intent_Type }}",
+            "Prioridad": "={{ $json.Priority }}",
+            "Hot Leads": "={{ $json.Hot_Leads_Found }}",
+            "Señales Switching": "={{ $json.Switching_Signals }}",
+            "Comunidades Target": "={{ $json.Target_Communities }}",
+            "Ventaja EA": "={{ $json.Ventaja_EA }}",
+            "Mensaje Recomendado": "={{ $json.Mensaje_Recomendado }}",
+            "Urgencia": "={{ $json.Urgencia }}",
+            "Competidores": "={{ $json.Competidores_Mencionados }}",
+            "Gap Analysis": "={{ $json.Gap_Analysis }}",
+            "Acciones": "={{ $json.Acciones }}"
+          }
+        },
+        "options": {"cellFormat": "USER_ENTERED"}
+      },
+      "id": "cg-0007",
+      "name": "📊 Guardar Competitor Intel",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.4,
+      "position": [1520, 400],
+      "credentials": {"googleSheetsOAuth2Api": {"id": "FILL_GOOGLE_CRED_ID", "name": "Google Sheets (Eight Academy)"}}
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {"caseSensitive": true, "leftValue": "", "typeValidation": "loose"},
+          "conditions": [{"id": "hot-gap", "leftValue": "={{ $json._hot }}", "rightValue": true, "operator": {"type": "boolean", "operation": "equals"}}],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "cg-0008",
+      "name": "🔥 ¿Hot Gap Detectado?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1740, 400]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $vars.OPENCLAW_WEBHOOK_URL }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"text\": \"⚠️ *HOT COMPETITIVE GAP — Eight Academy*\\n\\n🎯 Query: `{{ $json.Query }}`\\n📊 Intent: {{ $json.Intent_Type }} | Urgencia: *ALTA*\\n\\n*Señales de switching:*\\n{{ $json.Switching_Signals }}\\n\\n*Ventaja de EA:*\\n{{ $json.Ventaja_EA }}\\n\\n*Gap vs competencia:*\\n{{ $json.Gap_Analysis }}\\n\\n*Mensaje recomendado:*\\n{{ $json._msg }}\\n\\n✅ Acciones: {{ $json.Acciones }}\"\n}",
+        "options": {}
+      },
+      "id": "cg-0009",
+      "name": "🔔 Alerta Hot Gap a OpenClaw",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1960, 280]
+    },
+    {
+      "parameters": {},
+      "id": "cg-0010",
+      "name": "📌 Gap Guardado",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [1960, 520]
+    }
+  ],
+  "connections": {
+    "⏰ Trigger Miércoles 8AM": {"main": [[{"node": "⚙️ Config: 8 Competitor Queries", "type": "main", "index": 0}]]},
+    "⚙️ Config: 8 Competitor Queries": {"main": [[{"node": "🔄 Loop Competitor Queries", "type": "main", "index": 0}]]},
+    "🔄 Loop Competitor Queries": {"main": [[{"node": "🔍 Brave — Competitor Gap Search", "type": "main", "index": 0}]]},
+    "🔍 Brave — Competitor Gap Search": {"main": [[{"node": "🤖 Claude — Gap Analysis", "type": "main", "index": 0}]]},
+    "🤖 Claude — Gap Analysis": {"main": [[{"node": "🔧 Parse Gap Analysis", "type": "main", "index": 0}]]},
+    "🔧 Parse Gap Analysis": {"main": [[{"node": "📊 Guardar Competitor Intel", "type": "main", "index": 0}]]},
+    "📊 Guardar Competitor Intel": {"main": [[{"node": "🔥 ¿Hot Gap Detectado?", "type": "main", "index": 0}]]},
+    "🔥 ¿Hot Gap Detectado?": {"main": [[{"node": "🔔 Alerta Hot Gap a OpenClaw", "type": "main", "index": 0}], [{"node": "📌 Gap Guardado", "type": "main", "index": 0}]]},
+    "🔔 Alerta Hot Gap a OpenClaw": {"main": [[{"node": "🔄 Loop Competitor Queries", "type": "main", "index": 0}]]},
+    "📌 Gap Guardado": {"main": [[{"node": "🔄 Loop Competitor Queries", "type": "main", "index": 0}]]}
+  },
+  "active": false,
+  "settings": {"executionOrder": "v1"},
+  "versionId": "ea-wf6-v1",
+  "tags": [{"name": "eight-academy"}, {"name": "competitor-intel"}, {"name": "v2"}]
+}

@@ -1,0 +1,1698 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Eight Academy — Sistema IA de Admisiones | Lead Gen Automatizado</title>
+  <meta name="description" content="Sistema de captación inteligente con 6 workflows n8n para Eight Academy Quito. 50-80 leads calificados/semana con IA." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800;900&family=Playfair+Display:wght@400;600;700;900&display=swap" rel="stylesheet" />
+  <style>
+    /* ===== RESET & BASE ===== */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --teal:    #19B092;
+      --teal-d:  #0e8068;
+      --teal-l:  #1fd4ae;
+      --orange:  #F59B23;
+      --orange-d:#d4821a;
+      --navy:    #0D1B2A;
+      --navy-m:  #162437;
+      --navy-l:  #1e334a;
+      --white:   #FFFFFF;
+      --off:     #F4F7F9;
+      --gray:    #8899AA;
+      --border:  rgba(255,255,255,0.08);
+      --glow-t:  0 0 32px rgba(25,176,146,0.35);
+      --glow-o:  0 0 32px rgba(245,155,35,0.4);
+      --radius:  14px;
+      --shadow:  0 8px 32px rgba(13,27,42,0.18);
+    }
+    html { scroll-behavior: smooth; font-size: 16px; }
+    body {
+      font-family: 'Montserrat', sans-serif;
+      background: var(--navy);
+      color: var(--white);
+      overflow-x: hidden;
+      line-height: 1.65;
+    }
+    ::selection { background: var(--teal); color: #fff; }
+    img { display: block; max-width: 100%; }
+    a { color: inherit; text-decoration: none; }
+
+    /* ===== SCROLLBAR ===== */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: var(--navy); }
+    ::-webkit-scrollbar-thumb { background: var(--teal); border-radius: 99px; }
+
+    /* ===== NAVBAR ===== */
+    #navbar {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 999;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 40px;
+      background: rgba(13,27,42,0.55);
+      backdrop-filter: blur(18px);
+      border-bottom: 1px solid var(--border);
+      transition: padding .3s, background .3s;
+    }
+    #navbar.scrolled { padding: 10px 40px; background: rgba(13,27,42,0.88); }
+    .nav-logo {
+      display: flex; align-items: center; gap: 10px;
+      font-family: 'Playfair Display', serif;
+      font-size: 1.3rem; font-weight: 700;
+      color: var(--white);
+    }
+    .nav-logo .logo-badge {
+      background: linear-gradient(135deg, var(--teal), var(--teal-d));
+      color: #fff; font-family: 'Montserrat', sans-serif;
+      font-size: .65rem; font-weight: 800; letter-spacing: 1px;
+      padding: 3px 8px; border-radius: 6px; text-transform: uppercase;
+    }
+    .nav-links { display: flex; gap: 28px; align-items: center; }
+    .nav-links a {
+      font-size: .82rem; font-weight: 600; letter-spacing: .5px;
+      color: rgba(255,255,255,0.75);
+      transition: color .2s;
+    }
+    .nav-links a:hover { color: var(--teal-l); }
+    .nav-cta {
+      background: linear-gradient(135deg, var(--teal), var(--teal-d));
+      color: #fff !important; padding: 8px 18px; border-radius: 99px;
+      font-size: .8rem !important; font-weight: 700 !important;
+      box-shadow: var(--glow-t); transition: transform .2s, box-shadow .2s !important;
+    }
+    .nav-cta:hover { transform: translateY(-2px); box-shadow: 0 0 28px rgba(25,176,146,0.55) !important; }
+    @media(max-width:768px){
+      #navbar { padding: 12px 20px; }
+      .nav-links { display: none; }
+    }
+
+    /* ===== HERO ===== */
+    #hero {
+      position: relative; min-height: 100vh;
+      display: flex; align-items: center; justify-content: center;
+      overflow: hidden;
+      background: linear-gradient(160deg, var(--navy) 0%, #0a2a1f 60%, var(--navy-m) 100%);
+    }
+    #particles-canvas {
+      position: absolute; inset: 0; width: 100%; height: 100%;
+      pointer-events: none;
+    }
+    .hero-bg-glow {
+      position: absolute; border-radius: 50%; filter: blur(80px); pointer-events: none;
+    }
+    .hero-bg-glow.g1 {
+      width: 600px; height: 600px; top: -100px; left: -120px;
+      background: radial-gradient(circle, rgba(25,176,146,0.18) 0%, transparent 70%);
+    }
+    .hero-bg-glow.g2 {
+      width: 500px; height: 500px; bottom: -80px; right: -80px;
+      background: radial-gradient(circle, rgba(245,155,35,0.15) 0%, transparent 70%);
+    }
+    .hero-inner {
+      position: relative; z-index: 2; text-align: center;
+      max-width: 900px; padding: 120px 24px 80px;
+    }
+    .hero-eyebrow {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: rgba(25,176,146,0.12); border: 1px solid rgba(25,176,146,0.35);
+      padding: 6px 18px; border-radius: 99px; margin-bottom: 24px;
+      font-size: .78rem; font-weight: 700; letter-spacing: 1.5px;
+      text-transform: uppercase; color: var(--teal-l);
+    }
+    .hero-eyebrow .dot {
+      width: 7px; height: 7px; background: var(--teal-l); border-radius: 50%;
+      animation: pulse-dot 1.6s infinite;
+    }
+    @keyframes pulse-dot {
+      0%,100%{box-shadow:0 0 0 0 rgba(31,212,174,.6)}
+      50%{box-shadow:0 0 0 6px rgba(31,212,174,0)}
+    }
+    .hero-title {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(2.2rem, 5.5vw, 4.2rem);
+      font-weight: 900; line-height: 1.12;
+      margin-bottom: 12px;
+    }
+    .hero-title .accent-teal { color: var(--teal-l); }
+    .hero-title .accent-orange { color: var(--orange); }
+    .hero-sub {
+      font-size: clamp(.95rem, 2vw, 1.22rem); color: rgba(255,255,255,0.72);
+      max-width: 680px; margin: 0 auto 32px; font-weight: 400;
+    }
+
+    /* promo badge */
+    .promo-badge {
+      display: inline-flex; align-items: center; gap: 10px;
+      background: linear-gradient(135deg, var(--orange), var(--orange-d));
+      color: #fff; padding: 10px 24px; border-radius: 12px;
+      font-weight: 800; font-size: 1rem; letter-spacing: .5px;
+      box-shadow: var(--glow-o);
+      margin-bottom: 36px;
+      animation: badge-pulse 2.2s ease-in-out infinite;
+    }
+    @keyframes badge-pulse {
+      0%,100%{box-shadow:0 0 20px rgba(245,155,35,.4),0 4px 12px rgba(0,0,0,.25)}
+      50%{box-shadow:0 0 36px rgba(245,155,35,.7),0 4px 12px rgba(0,0,0,.25)}
+    }
+    .promo-badge .trophy { font-size: 1.3rem; }
+
+    /* hero badges */
+    .hero-badges {
+      display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;
+      margin-bottom: 40px;
+    }
+    .h-badge {
+      background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12);
+      padding: 7px 16px; border-radius: 99px;
+      font-size: .78rem; font-weight: 600; color: rgba(255,255,255,0.82);
+      backdrop-filter: blur(8px);
+    }
+    .h-badge.teal { border-color: rgba(25,176,146,0.4); color: var(--teal-l); }
+    .h-badge.orange { border-color: rgba(245,155,35,0.4); color: var(--orange); }
+
+    /* hero metrics */
+    .hero-metrics {
+      display: flex; gap: 0; justify-content: center;
+      background: rgba(255,255,255,0.04); border: 1px solid var(--border);
+      border-radius: 20px; overflow: hidden; max-width: 700px; margin: 0 auto 40px;
+      backdrop-filter: blur(12px);
+    }
+    .hm-item {
+      flex: 1; padding: 22px 16px; text-align: center;
+      border-right: 1px solid var(--border);
+    }
+    .hm-item:last-child { border-right: none; }
+    .hm-num {
+      font-family: 'Playfair Display', serif;
+      font-size: 2rem; font-weight: 900; color: var(--teal-l);
+      line-height: 1;
+    }
+    .hm-num.orange { color: var(--orange); }
+    .hm-label { font-size: .72rem; color: rgba(255,255,255,0.55); font-weight: 600; margin-top: 4px; }
+
+    /* hero btns */
+    .hero-btns { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+    .btn-primary {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: linear-gradient(135deg, var(--teal), var(--teal-d));
+      color: #fff; padding: 14px 30px; border-radius: 99px;
+      font-weight: 700; font-size: .92rem; letter-spacing: .4px;
+      box-shadow: var(--glow-t); transition: transform .2s, box-shadow .2s;
+    }
+    .btn-primary:hover { transform: translateY(-3px); box-shadow: 0 0 40px rgba(25,176,146,.55); }
+    .btn-secondary {
+      display: inline-flex; align-items: center; gap: 8px;
+      border: 1.5px solid rgba(255,255,255,0.2);
+      color: rgba(255,255,255,0.85); padding: 14px 30px; border-radius: 99px;
+      font-weight: 600; font-size: .92rem;
+      transition: all .2s;
+    }
+    .btn-secondary:hover { border-color: var(--teal); color: var(--teal-l); }
+
+    /* ===== SECTION COMMON ===== */
+    section { padding: 90px 24px; }
+    .section-tag {
+      display: inline-flex; align-items: center; gap: 7px;
+      font-size: .72rem; font-weight: 800; letter-spacing: 2px;
+      text-transform: uppercase; color: var(--teal);
+      margin-bottom: 14px;
+    }
+    .section-tag::before {
+      content: ''; width: 28px; height: 2px;
+      background: var(--teal); border-radius: 2px;
+    }
+    .section-title {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(1.8rem, 4vw, 3rem);
+      font-weight: 900; line-height: 1.15;
+      margin-bottom: 16px;
+    }
+    .section-desc {
+      font-size: 1rem; color: rgba(255,255,255,0.65);
+      max-width: 600px; line-height: 1.7;
+    }
+    .container { max-width: 1160px; margin: 0 auto; }
+
+    /* ===== FADE-IN ANIM ===== */
+    .fade-up {
+      opacity: 0; transform: translateY(40px);
+      transition: opacity .7s ease, transform .7s ease;
+    }
+    .fade-up.visible { opacity: 1; transform: translateY(0); }
+    .fade-up.d1 { transition-delay: .1s; }
+    .fade-up.d2 { transition-delay: .2s; }
+    .fade-up.d3 { transition-delay: .3s; }
+    .fade-up.d4 { transition-delay: .4s; }
+    .fade-up.d5 { transition-delay: .5s; }
+    .fade-up.d6 { transition-delay: .6s; }
+
+    /* ===== SECTION DNA ===== */
+    #dna { background: var(--navy-m); }
+    .campus-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 20px; margin: 50px 0;
+    }
+    .campus-card {
+      background: var(--navy-l); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 28px 24px;
+      position: relative; overflow: hidden;
+      transition: transform .3s, box-shadow .3s;
+    }
+    .campus-card:hover { transform: translateY(-6px); box-shadow: var(--glow-t); }
+    .campus-card::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--teal), var(--teal-l));
+    }
+    .campus-card.zoo::before {
+      background: linear-gradient(90deg, var(--orange), var(--orange-d));
+    }
+    .campus-icon {
+      width: 48px; height: 48px; border-radius: 12px; margin-bottom: 16px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.5rem;
+      background: rgba(25,176,146,0.12);
+    }
+    .campus-card.zoo .campus-icon { background: rgba(245,155,35,0.12); }
+    .campus-name {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.15rem; font-weight: 700; margin-bottom: 6px;
+    }
+    .campus-nse {
+      display: inline-block; font-size: .68rem; font-weight: 700;
+      background: rgba(25,176,146,0.15); color: var(--teal-l);
+      padding: 2px 10px; border-radius: 99px; margin-bottom: 10px;
+      letter-spacing: .8px; text-transform: uppercase;
+    }
+    .campus-card.zoo .campus-nse { background: rgba(245,155,35,0.15); color: var(--orange); }
+    .campus-addr { font-size: .82rem; color: rgba(255,255,255,0.55); line-height: 1.5; }
+    .campus-unique {
+      margin-top: 12px; font-size: .8rem; font-weight: 600;
+      color: var(--teal-l); display: flex; align-items: center; gap: 6px;
+    }
+    .campus-card.zoo .campus-unique { color: var(--orange); }
+
+    /* diffs */
+    .diff-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px; margin-top: 40px;
+    }
+    .diff-card {
+      background: rgba(25,176,146,0.06); border: 1px solid rgba(25,176,146,0.18);
+      border-radius: 12px; padding: 22px 18px; text-align: center;
+      transition: background .3s;
+    }
+    .diff-card:hover { background: rgba(25,176,146,0.12); }
+    .diff-icon { font-size: 2rem; margin-bottom: 10px; }
+    .diff-title { font-size: .88rem; font-weight: 700; margin-bottom: 6px; }
+    .diff-desc { font-size: .78rem; color: rgba(255,255,255,0.55); }
+
+    /* ===== PARALLAX ===== */
+    .parallax-section {
+      position: relative; min-height: 480px;
+      display: flex; align-items: center; justify-content: center;
+      overflow: hidden;
+    }
+    .parallax-bg {
+      position: absolute; inset: -40px; background-attachment: fixed;
+      background-size: cover; background-position: center;
+      filter: brightness(.22) saturate(1.2);
+    }
+    .parallax-overlay {
+      position: absolute; inset: 0;
+      background: linear-gradient(135deg, rgba(13,27,42,.7) 0%, rgba(14,128,104,.35) 100%);
+    }
+    .parallax-content {
+      position: relative; z-index: 2; text-align: center;
+      padding: 80px 24px; max-width: 860px;
+    }
+    .parallax-content .big-title {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(1.9rem, 4.5vw, 3.4rem);
+      font-weight: 900; line-height: 1.15; margin-bottom: 18px;
+    }
+    .parallax-content .sub {
+      font-size: 1.1rem; color: rgba(255,255,255,0.78); margin-bottom: 36px;
+    }
+
+    /* ===== WORKFLOWS ===== */
+    #workflows { background: var(--navy); }
+    .wf-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 22px; margin-top: 50px;
+    }
+    .wf-card {
+      background: var(--navy-m); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 30px 26px;
+      position: relative; overflow: hidden;
+      transition: transform .3s, border-color .3s;
+    }
+    .wf-card:hover { transform: translateY(-5px); border-color: rgba(25,176,146,0.4); }
+    .wf-num {
+      position: absolute; top: 20px; right: 20px;
+      font-family: 'Playfair Display', serif;
+      font-size: 3.5rem; font-weight: 900; color: rgba(25,176,146,0.08);
+      line-height: 1;
+    }
+    .wf-icon {
+      width: 52px; height: 52px; border-radius: 14px; margin-bottom: 18px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.6rem;
+      background: linear-gradient(135deg, rgba(25,176,146,0.15), rgba(25,176,146,0.05));
+      border: 1px solid rgba(25,176,146,0.2);
+    }
+    .wf-title { font-weight: 800; font-size: 1.05rem; margin-bottom: 8px; }
+    .wf-desc { font-size: .85rem; color: rgba(255,255,255,0.6); margin-bottom: 16px; line-height: 1.6; }
+    .wf-trigger {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-size: .75rem; font-weight: 700; color: var(--teal);
+      background: rgba(25,176,146,0.08); border: 1px solid rgba(25,176,146,0.2);
+      padding: 5px 12px; border-radius: 99px;
+    }
+    .wf-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 14px; }
+    .wf-tag {
+      font-size: .7rem; font-weight: 600;
+      background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+      padding: 3px 10px; border-radius: 99px; color: rgba(255,255,255,0.6);
+    }
+    .wf-card.wf-bridge .wf-icon { background: rgba(245,155,35,0.12); border-color: rgba(245,155,35,0.2); }
+    .wf-card.wf-bridge:hover { border-color: rgba(245,155,35,0.4); }
+    .wf-card.wf-bridge .wf-trigger { color: var(--orange); background: rgba(245,155,35,.08); border-color: rgba(245,155,35,.2); }
+
+    /* ===== SCORING ===== */
+    #scoring { background: var(--navy-m); }
+    .scoring-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px; margin-top: 50px;
+    }
+    .score-card {
+      background: var(--navy-l); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 26px 22px;
+      display: flex; flex-direction: column; gap: 12px;
+      transition: transform .3s;
+    }
+    .score-card:hover { transform: translateY(-4px); }
+    .score-header { display: flex; align-items: center; gap: 14px; }
+    .score-icon {
+      width: 44px; height: 44px; flex-shrink: 0; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.3rem;
+      background: rgba(25,176,146,0.1); border: 1px solid rgba(25,176,146,0.18);
+    }
+    .score-name { font-weight: 800; font-size: .95rem; }
+    .score-var { font-size: .73rem; color: var(--teal); font-family: monospace; }
+    .score-bar-wrap {
+      background: rgba(255,255,255,0.06); border-radius: 99px; height: 6px;
+    }
+    .score-bar {
+      height: 6px; border-radius: 99px;
+      background: linear-gradient(90deg, var(--teal), var(--teal-l));
+      width: 0; transition: width 1.2s cubic-bezier(.4,0,.2,1);
+    }
+    .score-bar.orange { background: linear-gradient(90deg, var(--orange), #ffb84d); }
+    .score-desc { font-size: .8rem; color: rgba(255,255,255,0.55); line-height: 1.55; }
+    .score-range {
+      font-size: .72rem; font-weight: 700; color: rgba(255,255,255,0.38);
+      letter-spacing: .5px;
+    }
+
+    /* ===== PARALLAX ROI ===== */
+    #roi-parallax .parallax-bg {
+      background-image: url('https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=1600&q=80');
+    }
+    .roi-metrics-grid {
+      display: flex; flex-wrap: wrap; gap: 28px; justify-content: center;
+      margin-top: 40px;
+    }
+    .roi-item {
+      background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 16px; padding: 28px 32px; text-align: center;
+      backdrop-filter: blur(10px); min-width: 160px;
+    }
+    .roi-num {
+      font-family: 'Playfair Display', serif;
+      font-size: 2.5rem; font-weight: 900;
+      color: var(--teal-l); line-height: 1;
+    }
+    .roi-num.orange { color: var(--orange); }
+    .roi-label { font-size: .78rem; color: rgba(255,255,255,0.65); margin-top: 6px; font-weight: 500; }
+
+    /* ===== PIPELINE ===== */
+    #pipeline { background: var(--navy); }
+    .pipeline-wrap {
+      margin-top: 50px; display: flex; flex-wrap: wrap;
+      gap: 0; align-items: stretch;
+    }
+    .pipe-stage {
+      flex: 1; min-width: 140px;
+      display: flex; flex-direction: column; align-items: center;
+      position: relative; padding: 24px 12px;
+    }
+    .pipe-stage:not(:last-child)::after {
+      content: '→';
+      position: absolute; right: -12px; top: 50%;
+      transform: translateY(-50%);
+      font-size: 1.4rem; color: var(--teal);
+      z-index: 2;
+    }
+    .pipe-icon {
+      width: 60px; height: 60px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.6rem; margin-bottom: 12px;
+      border: 2px solid rgba(25,176,146,0.3);
+      background: rgba(25,176,146,0.08);
+      transition: all .3s;
+    }
+    .pipe-stage:hover .pipe-icon {
+      background: rgba(25,176,146,0.2);
+      border-color: var(--teal);
+      box-shadow: var(--glow-t);
+    }
+    .pipe-label { font-size: .82rem; font-weight: 700; text-align: center; margin-bottom: 4px; }
+    .pipe-sub { font-size: .72rem; color: rgba(255,255,255,0.45); text-align: center; }
+    .pipe-badge {
+      margin-top: 8px; font-size: .68rem; font-weight: 700;
+      background: rgba(25,176,146,0.1); color: var(--teal-l);
+      padding: 2px 10px; border-radius: 99px;
+    }
+    @media(max-width:700px){
+      .pipeline-wrap { flex-direction: column; gap: 16px; }
+      .pipe-stage:not(:last-child)::after { content: '↓'; right: auto; top: auto; bottom: -22px; left: 50%; transform: translateX(-50%); }
+      .pipe-stage { padding: 18px 12px; }
+    }
+
+    /* ===== ANTES VS DESPUÉS ===== */
+    #avd { background: var(--navy-m); }
+    .avd-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 30px;
+      margin-top: 50px;
+    }
+    @media(max-width:640px){ .avd-grid { grid-template-columns: 1fr; } }
+    .avd-col {
+      border-radius: var(--radius); overflow: hidden;
+    }
+    .avd-header {
+      padding: 20px 24px; font-weight: 800; font-size: 1.05rem;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .avd-col.before .avd-header { background: rgba(255,80,80,0.12); color: #ff6b6b; }
+    .avd-col.after .avd-header { background: rgba(25,176,146,0.12); color: var(--teal-l); }
+    .avd-body {
+      background: var(--navy-l); border: 1px solid var(--border);
+      border-top: none; border-radius: 0 0 var(--radius) var(--radius);
+    }
+    .avd-item {
+      padding: 14px 24px; border-bottom: 1px solid var(--border);
+      font-size: .88rem; display: flex; align-items: flex-start; gap: 10px;
+    }
+    .avd-item:last-child { border-bottom: none; }
+    .avd-item .ico { font-size: 1rem; flex-shrink: 0; margin-top: 2px; }
+    .avd-item .txt { color: rgba(255,255,255,0.75); line-height: 1.5; }
+    .avd-col.before .avd-item .txt { color: rgba(255,155,155,0.8); }
+    .avd-col.after .avd-item .txt { color: rgba(180,255,240,0.82); }
+
+    /* ===== ROADMAP ===== */
+    #roadmap { background: var(--navy); }
+    .roadmap-weeks {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 0; margin-top: 50px; position: relative;
+    }
+    .roadmap-weeks::before {
+      content: ''; position: absolute; top: 36px; left: 10%; right: 10%;
+      height: 2px; background: linear-gradient(90deg, var(--teal), var(--orange));
+      z-index: 0;
+    }
+    @media(max-width:640px){ .roadmap-weeks::before { display: none; } }
+    .week-card {
+      background: var(--navy-m); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 28px 22px; position: relative;
+      z-index: 1; margin: 0 8px;
+      transition: transform .3s, box-shadow .3s;
+    }
+    .week-card:hover { transform: translateY(-6px); box-shadow: var(--glow-t); }
+    .week-num {
+      width: 52px; height: 52px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--teal), var(--teal-d));
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Playfair Display', serif;
+      font-size: 1.3rem; font-weight: 900; margin-bottom: 16px;
+      box-shadow: var(--glow-t);
+    }
+    .week-card:nth-child(4) .week-num {
+      background: linear-gradient(135deg, var(--orange), var(--orange-d));
+      box-shadow: var(--glow-o);
+    }
+    .week-title { font-weight: 800; font-size: .95rem; margin-bottom: 10px; }
+    .week-tasks { list-style: none; }
+    .week-tasks li {
+      font-size: .8rem; color: rgba(255,255,255,0.6);
+      padding: 5px 0; border-bottom: 1px solid rgba(255,255,255,0.05);
+      display: flex; gap: 8px; align-items: flex-start;
+    }
+    .week-tasks li::before { content: '✓'; color: var(--teal); font-weight: 700; flex-shrink: 0; }
+    .week-card:nth-child(4) .week-tasks li::before { color: var(--orange); }
+
+    /* ===== PERSONAS ===== */
+    #personas { background: var(--navy-m); }
+    .persona-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 22px; margin-top: 50px;
+    }
+    .persona-card {
+      background: var(--navy-l); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 28px 24px;
+      transition: transform .3s, box-shadow .3s;
+    }
+    .persona-card:hover { transform: translateY(-5px); box-shadow: var(--shadow); }
+    .persona-avatar {
+      width: 56px; height: 56px; border-radius: 50%; margin-bottom: 16px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.8rem;
+      background: rgba(25,176,146,0.1); border: 2px solid rgba(25,176,146,0.25);
+    }
+    .persona-card.b2b .persona-avatar {
+      background: rgba(245,155,35,0.1); border-color: rgba(245,155,35,0.25);
+    }
+    .persona-title { font-weight: 800; font-size: 1rem; margin-bottom: 4px; }
+    .persona-sub { font-size: .8rem; color: rgba(255,255,255,0.5); margin-bottom: 16px; }
+    .persona-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
+    .p-tag {
+      font-size: .7rem; font-weight: 700;
+      background: rgba(25,176,146,0.1); color: var(--teal-l);
+      padding: 3px 10px; border-radius: 99px;
+    }
+    .persona-card.b2b .p-tag { background: rgba(245,155,35,0.1); color: var(--orange); }
+    .persona-trigger { font-size: .82rem; color: rgba(255,255,255,0.65); line-height: 1.6; }
+    .persona-score {
+      margin-top: 16px; display: flex; gap: 8px; flex-wrap: wrap;
+    }
+    .ps-item {
+      font-size: .72rem; font-weight: 700;
+      background: rgba(255,255,255,0.05); border: 1px solid var(--border);
+      padding: 4px 10px; border-radius: 8px; color: rgba(255,255,255,0.5);
+    }
+    .ps-item span { color: var(--teal-l); }
+    .persona-card.b2b .ps-item span { color: var(--orange); }
+
+    /* ===== CTA FINAL ===== */
+    #cta-final {
+      background: linear-gradient(135deg, #0a2a1f 0%, var(--navy) 50%, #0a1a10 100%);
+      text-align: center; padding: 100px 24px;
+      position: relative; overflow: hidden;
+    }
+    #cta-final::before {
+      content: ''; position: absolute; inset: 0;
+      background: radial-gradient(ellipse at 50% 0%, rgba(25,176,146,0.18) 0%, transparent 65%);
+    }
+    .cta-inner { position: relative; z-index: 2; max-width: 700px; margin: 0 auto; }
+    .cta-title {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(2rem, 5vw, 3.2rem);
+      font-weight: 900; margin-bottom: 18px; line-height: 1.15;
+    }
+    .cta-desc { font-size: 1.05rem; color: rgba(255,255,255,0.7); margin-bottom: 40px; }
+    .cta-btns { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
+    .btn-wa {
+      display: inline-flex; align-items: center; gap: 10px;
+      background: #25D366; color: #fff;
+      padding: 16px 34px; border-radius: 99px;
+      font-weight: 800; font-size: .95rem;
+      box-shadow: 0 0 30px rgba(37,211,102,0.4);
+      animation: wa-pulse 2s ease-in-out infinite;
+      transition: transform .2s;
+    }
+    .btn-wa:hover { transform: translateY(-3px); }
+    @keyframes wa-pulse {
+      0%,100%{box-shadow:0 0 20px rgba(37,211,102,.35)}
+      50%{box-shadow:0 0 42px rgba(37,211,102,.65)}
+    }
+    .btn-n8n {
+      display: inline-flex; align-items: center; gap: 10px;
+      background: linear-gradient(135deg, var(--teal), var(--teal-d));
+      color: #fff; padding: 16px 34px; border-radius: 99px;
+      font-weight: 700; font-size: .95rem;
+      box-shadow: var(--glow-t); transition: transform .2s;
+    }
+    .btn-n8n:hover { transform: translateY(-3px); }
+
+    /* ===== FOOTER ===== */
+    footer {
+      background: #07111a; text-align: center;
+      padding: 32px 24px; border-top: 1px solid var(--border);
+    }
+    footer p { font-size: .8rem; color: rgba(255,255,255,0.28); }
+    footer a { color: var(--teal); }
+
+    /* ===== WA FLOATING BUTTON ===== */
+    .wa-float {
+      position: fixed; bottom: 28px; right: 28px; z-index: 998;
+      width: 58px; height: 58px; border-radius: 50%;
+      background: #25D366;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.6rem;
+      box-shadow: 0 4px 20px rgba(37,211,102,0.5);
+      animation: wa-pulse 2s infinite;
+      transition: transform .2s;
+      cursor: pointer;
+    }
+    .wa-float:hover { transform: scale(1.1); }
+
+    /* ===== MISC ===== */
+    .teal { color: var(--teal-l); }
+    .orange { color: var(--orange); }
+    .bold { font-weight: 800; }
+    .divider {
+      height: 1px; background: var(--border);
+      max-width: 1160px; margin: 0 auto;
+    }
+  </style>
+</head>
+<body>
+
+<!-- FLOATING WA BUTTON -->
+<a href="https://wa.me/593XXXXXXXXX?text=Hola!%20Me%20interesa%20el%20sistema%20de%20admisiones%20de%20Eight%20Academy" 
+   class="wa-float" target="_blank" title="Contactar por WhatsApp">💬</a>
+
+<!-- NAVBAR -->
+<nav id="navbar">
+  <div class="nav-logo">
+    <span class="logo-badge">8</span>
+    Eight Academy
+  </div>
+  <div class="nav-links">
+    <a href="#dna">El Colegio</a>
+    <a href="#workflows">Sistema IA</a>
+    <a href="#scoring">Scoring</a>
+    <a href="#pipeline">Pipeline</a>
+    <a href="#roadmap">Setup</a>
+    <a href="https://wa.me/593XXXXXXXXX?text=Hola!%20quiero%20info%20sobre%20admisiones%20Eight%20Academy" 
+       class="nav-cta" target="_blank">💬 Admisiones</a>
+  </div>
+</nav>
+
+<!-- ===== HERO ===== -->
+<section id="hero">
+  <canvas id="particles-canvas"></canvas>
+  <div class="hero-bg-glow g1"></div>
+  <div class="hero-bg-glow g2"></div>
+
+  <div class="hero-inner">
+    <div class="hero-eyebrow fade-up">
+      <span class="dot"></span>
+      Sistema Activo · n8n + Claude AI · 6 Workflows
+    </div>
+
+    <div class="promo-badge fade-up d1">
+      <span class="trophy">🎓</span>
+      SIN MATRÍCULA — Año Lectivo 2026/2027
+      <span class="trophy">⭐</span>
+    </div>
+
+    <h1 class="hero-title fade-up d2">
+      <span class="accent-teal">Eight Academy</span> —<br/>
+      Sistema IA de<br/>
+      <span class="accent-orange">Admisiones Inteligente</span>
+    </h1>
+
+    <p class="hero-sub fade-up d3">
+      Automatización end-to-end con inteligencia artificial: desde el descubrimiento de familias hasta la matrícula. 
+      <strong>6 workflows n8n</strong> que trabajan 24/7 por tu colegio.
+    </p>
+
+    <div class="hero-badges fade-up d3">
+      <span class="h-badge teal">🤖 Claude Sonnet AI</span>
+      <span class="h-badge teal">⚡ n8n Workflows</span>
+      <span class="h-badge orange">🏫 4 Campus Quito</span>
+      <span class="h-badge orange">📍 Geo Targeting</span>
+      <span class="h-badge">🧠 NSE Scoring</span>
+      <span class="h-badge">📊 Lead Calificado</span>
+      <span class="h-badge teal">🌿 Zoo Botánica</span>
+      <span class="h-badge">🥽 Aulas Metaverso</span>
+    </div>
+
+    <div class="hero-metrics fade-up d4">
+      <div class="hm-item">
+        <div class="hm-num" data-target="80">0</div>
+        <div class="hm-label">Leads/semana</div>
+      </div>
+      <div class="hm-item">
+        <div class="hm-num orange" data-target="6">0</div>
+        <div class="hm-label">Workflows n8n</div>
+      </div>
+      <div class="hm-item">
+        <div class="hm-num" data-target="16">0</div>
+        <div class="hm-label">Búsquedas Geo</div>
+      </div>
+      <div class="hm-item">
+        <div class="hm-num orange" data-target="2500">0</div>
+        <div class="hm-label">ROI % (conservador)</div>
+      </div>
+    </div>
+
+    <div class="hero-btns fade-up d5">
+      <a href="#workflows" class="btn-primary">⚡ Ver el Sistema</a>
+      <a href="https://wa.me/593XXXXXXXXX?text=Hola!%20quiero%20info%20Eight%20Academy%20sistema%20admisiones" 
+         class="btn-secondary" target="_blank">💬 Hablar con Admisiones</a>
+    </div>
+  </div>
+</section>
+
+<!-- ===== DNA DEL COLEGIO ===== -->
+<section id="dna">
+  <div class="container">
+    <div class="fade-up">
+      <span class="section-tag">El Colegio</span>
+      <h2 class="section-title">Construimos la<br/><span class="teal">Educación del Futuro</span></h2>
+      <p class="section-desc">
+        Unidad Educativa Bilingüe K-inicial hasta Bachillerato. 4 campus en Quito, 
+        pensión de <strong>$350 USD/mes</strong>, con diferenciadores únicos en Ecuador.
+      </p>
+    </div>
+
+    <div class="campus-grid">
+      <div class="campus-card fade-up d1">
+        <div class="campus-icon">🌱</div>
+        <div class="campus-name">Eight Kids — Inicial</div>
+        <div class="campus-nse">NSE A / B+</div>
+        <div class="campus-addr">Los Alhelíes E15-44<br/>Educación Inicial Bilingüe</div>
+        <div class="campus-unique">🌍 Bilingüe desde los 3 años</div>
+      </div>
+
+      <div class="campus-card fade-up d2">
+        <div class="campus-icon">📚</div>
+        <div class="campus-name">Eight Primaria</div>
+        <div class="campus-nse">Norte Quito · NSE A/B+</div>
+        <div class="campus-addr">Av. 6 de Diciembre y<br/>Manuel Zambrano</div>
+        <div class="campus-unique">🥽 Aulas de Realidad Virtual</div>
+      </div>
+
+      <div class="campus-card fade-up d3">
+        <div class="campus-icon">🎓</div>
+        <div class="campus-name">Eight Secundaria</div>
+        <div class="campus-nse">Norte Quito · NSE A/B</div>
+        <div class="campus-addr">Av. La Prensa y<br/>Nicolás López</div>
+        <div class="campus-unique">💡 Emprendimiento Digital curricular</div>
+      </div>
+
+      <div class="campus-card zoo fade-up d4">
+        <div class="campus-icon">🦜</div>
+        <div class="campus-name">Zoo Botánica Academy</div>
+        <div class="campus-nse">⭐ Única en Ecuador</div>
+        <div class="campus-addr">15 min de Guayllabamba<br/>Granja viva como aula</div>
+        <div class="campus-unique">🌿 Naturaleza + Tecnología</div>
+      </div>
+    </div>
+
+    <!-- CSS Map Visual -->
+    <div class="fade-up" style="margin:40px 0 50px;background:var(--navy-l);border:1px solid var(--border);border-radius:var(--radius);padding:30px;text-align:center;">
+      <div style="font-size:.75rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--gray);margin-bottom:18px;">📍 Distribución de Campus — Quito</div>
+      <div style="position:relative;max-width:500px;margin:0 auto;height:240px;background:rgba(25,176,146,0.04);border:1px solid rgba(25,176,146,0.12);border-radius:12px;overflow:hidden;">
+        <!-- Map dots -->
+        <div style="position:absolute;top:15%;left:48%;transform:translate(-50%,-50%);">
+          <div style="width:14px;height:14px;background:var(--teal);border-radius:50%;box-shadow:0 0 12px var(--teal);margin:0 auto;"></div>
+          <div style="font-size:.65rem;font-weight:700;color:var(--teal-l);white-space:nowrap;margin-top:4px;text-align:center;">La Prensa (Secundaria)</div>
+        </div>
+        <div style="position:absolute;top:35%;left:52%;transform:translate(-50%,-50%);">
+          <div style="width:14px;height:14px;background:var(--teal);border-radius:50%;box-shadow:0 0 12px var(--teal);margin:0 auto;"></div>
+          <div style="font-size:.65rem;font-weight:700;color:var(--teal-l);white-space:nowrap;margin-top:4px;text-align:center;">6 de Dic. (Primaria)</div>
+        </div>
+        <div style="position:absolute;top:55%;left:40%;transform:translate(-50%,-50%);">
+          <div style="width:14px;height:14px;background:var(--teal);border-radius:50%;box-shadow:0 0 12px var(--teal);margin:0 auto;"></div>
+          <div style="font-size:.65rem;font-weight:700;color:var(--teal-l);white-space:nowrap;margin-top:4px;text-align:center;">Los Alhelíes (Kids)</div>
+        </div>
+        <div style="position:absolute;top:75%;left:72%;transform:translate(-50%,-50%);">
+          <div style="width:18px;height:18px;background:var(--orange);border-radius:50%;box-shadow:0 0 12px var(--orange);margin:0 auto;"></div>
+          <div style="font-size:.65rem;font-weight:700;color:var(--orange);white-space:nowrap;margin-top:4px;text-align:center;">🦜 Zoo Botánica</div>
+        </div>
+        <!-- Grid lines suggestion -->
+        <svg style="position:absolute;inset:0;width:100%;height:100%;opacity:.06" xmlns="http://www.w3.org/2000/svg">
+          <line x1="0" y1="33%" x2="100%" y2="33%" stroke="#19B092" stroke-width="1"/>
+          <line x1="0" y1="66%" x2="100%" y2="66%" stroke="#19B092" stroke-width="1"/>
+          <line x1="33%" y1="0" x2="33%" y2="100%" stroke="#19B092" stroke-width="1"/>
+          <line x1="66%" y1="0" x2="66%" y2="100%" stroke="#19B092" stroke-width="1"/>
+        </svg>
+        <div style="position:absolute;bottom:8px;left:50%;transform:translateX(-50%);font-size:.65rem;color:rgba(255,255,255,0.2);white-space:nowrap;">Norte → Sur de Quito · No a escala</div>
+      </div>
+    </div>
+
+    <!-- Diferenciadores -->
+    <div class="fade-up">
+      <span class="section-tag">Diferenciadores</span>
+      <h3 class="section-title" style="font-size:clamp(1.4rem,3vw,2.2rem);">Lo que nadie más tiene<br/><span class="orange">en Ecuador</span></h3>
+    </div>
+    <div class="diff-grid">
+      <div class="diff-card fade-up d1">
+        <div class="diff-icon">🥽</div>
+        <div class="diff-title">Aulas de Metaverso & VR</div>
+        <div class="diff-desc">Tecnología inmersiva como parte del currículo oficial</div>
+      </div>
+      <div class="diff-card fade-up d2">
+        <div class="diff-icon">💡</div>
+        <div class="diff-title">Emprendimientos Digitales</div>
+        <div class="diff-desc">Materia curricular desde primaria. Startups reales</div>
+      </div>
+      <div class="diff-card fade-up d3">
+        <div class="diff-icon">🌿</div>
+        <div class="diff-title">Zoo Botánica Academy</div>
+        <div class="diff-desc">Granja y naturaleza como aula viva. Única en Ecuador</div>
+      </div>
+      <div class="diff-card fade-up d4">
+        <div class="diff-icon">🏗️</div>
+        <div class="diff-title">Metodología Constructivista</div>
+        <div class="diff-desc">Edutainment: aprender jugando con propósito</div>
+      </div>
+      <div class="diff-card fade-up d5">
+        <div class="diff-icon">8️⃣</div>
+        <div class="diff-title">8 Pilares Educativos</div>
+        <div class="diff-desc">Marco pedagógico integral y diferenciado</div>
+      </div>
+      <div class="diff-card fade-up d6">
+        <div class="diff-icon">🌍</div>
+        <div class="diff-title">Bilingüe desde Inicial</div>
+        <div class="diff-desc">Inmersión en inglés desde los primeros años</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== PARALLAX 1: PIPELINE OVERVIEW ===== -->
+<div class="parallax-section" id="parallax1">
+  <div class="parallax-bg" style="background-image:url('https://images.unsplash.com/photo-1497366216548-37526070297c?w=1600&q=80');"></div>
+  <div class="parallax-overlay"></div>
+  <div class="parallax-content fade-up">
+    <div class="hero-eyebrow" style="display:inline-flex;margin-bottom:20px;">
+      <span class="dot"></span>
+      Automatización Total con IA
+    </div>
+    <div class="big-title">
+      Del Prospecto Frío<br/>
+      al <span class="teal">Alumno Matriculado</span><br/>
+      — Automatizado con IA
+    </div>
+    <div class="sub">
+      6 workflows n8n interconectados que identifican, califican y convierten 
+      familias en leads calificados para Eight Academy, sin esfuerzo manual.
+    </div>
+    <div style="display:flex;gap:16px;justify-content:center;flex-wrap:wrap;">
+      <div style="background:rgba(25,176,146,0.15);border:1px solid rgba(25,176,146,0.3);padding:12px 22px;border-radius:12px;font-weight:700;font-size:.88rem;">
+        📍 4 Sedes × 4 Queries = 16 búsquedas geo
+      </div>
+      <div style="background:rgba(245,155,35,0.15);border:1px solid rgba(245,155,35,0.3);padding:12px 22px;border-radius:12px;font-weight:700;font-size:.88rem;color:var(--orange);">
+        🤖 Claude Sonnet — Outreach personalizado
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== WORKFLOWS ===== -->
+<section id="workflows">
+  <div class="container">
+    <div class="fade-up">
+      <span class="section-tag">El Motor</span>
+      <h2 class="section-title">Los 6 Workflows<br/><span class="teal">n8n Interconectados</span></h2>
+      <p class="section-desc">
+        Cada workflow tiene un rol específico en el funnel. Juntos forman un sistema de captación autónomo.
+      </p>
+    </div>
+
+    <div class="wf-grid">
+
+      <!-- WF1 -->
+      <div class="wf-card fade-up d1">
+        <div class="wf-num">01</div>
+        <div class="wf-icon">📍</div>
+        <div class="wf-title">WF1 — Geo Family Discovery</div>
+        <div class="wf-desc">
+          Busca familias en un radio de <strong>10km de cada sede</strong>. 
+          4 sedes × 4 queries = 16 búsquedas paralelas. Segmentación por NSE y zona.
+        </div>
+        <div class="wf-trigger">⚡ Trigger: Cron diario 07:00</div>
+        <div class="wf-tags">
+          <span class="wf-tag">geo-fencing</span>
+          <span class="wf-tag">4 campus</span>
+          <span class="wf-tag">16 búsquedas</span>
+          <span class="wf-tag">NSE mapping</span>
+        </div>
+      </div>
+
+      <!-- WF2 -->
+      <div class="wf-card fade-up d2">
+        <div class="wf-num">02</div>
+        <div class="wf-icon">🔍</div>
+        <div class="wf-title">WF2 — Intent Keywords Engine</div>
+        <div class="wf-desc">
+          8 queries paralelas detectando señales de intención activa: 
+          "matrícula colegio 2026", "innovacion educativa Quito", "emprendimiento digital niños".
+        </div>
+        <div class="wf-trigger">⚡ Trigger: Webhook + Cron</div>
+        <div class="wf-tags">
+          <span class="wf-tag">intent signals</span>
+          <span class="wf-tag">8 queries</span>
+          <span class="wf-tag">keyword tracking</span>
+          <span class="wf-tag">real-time</span>
+        </div>
+      </div>
+
+      <!-- WF3 -->
+      <div class="wf-card fade-up d3">
+        <div class="wf-num">03</div>
+        <div class="wf-icon">✉️</div>
+        <div class="wf-title">WF3 — Outreach Automation</div>
+        <div class="wf-desc">
+          Claude Sonnet redacta mensajes <strong>100% personalizados</strong> por WhatsApp y email. 
+          Adapta el tono según el perfil del prospecto y el campus más cercano.
+        </div>
+        <div class="wf-trigger">⚡ Trigger: Nuevo lead calificado</div>
+        <div class="wf-tags">
+          <span class="wf-tag">Claude Sonnet</span>
+          <span class="wf-tag">WhatsApp</span>
+          <span class="wf-tag">email</span>
+          <span class="wf-tag">personalización</span>
+        </div>
+      </div>
+
+      <!-- WF4 -->
+      <div class="wf-card wf-bridge fade-up d4">
+        <div class="wf-num">04</div>
+        <div class="wf-icon">🌉</div>
+        <div class="wf-title">WF4 — OpenClaw Bridge</div>
+        <div class="wf-desc">
+          Control del sistema completo desde chat. Pausa campañas, 
+          consulta métricas, ajusta parámetros de scoring — todo desde una conversación.
+        </div>
+        <div class="wf-trigger" style="color:var(--orange);background:rgba(245,155,35,.08);border-color:rgba(245,155,35,.2);">⚡ Trigger: Comando desde chat</div>
+        <div class="wf-tags">
+          <span class="wf-tag">OpenClaw</span>
+          <span class="wf-tag">control remoto</span>
+          <span class="wf-tag">métricas</span>
+        </div>
+      </div>
+
+      <!-- WF5 -->
+      <div class="wf-card fade-up d5">
+        <div class="wf-num">05</div>
+        <div class="wf-icon">🗺️</div>
+        <div class="wf-title">WF5 — NSE Zone Mapper</div>
+        <div class="wf-desc">
+          Clasifica automáticamente cada zona de Quito por nivel socioeconómico (A/B+/B/C+). 
+          Prioriza prospectos con poder adquisitivo para pagar $350/mes.
+        </div>
+        <div class="wf-trigger">⚡ Trigger: Nuevo prospecto geo</div>
+        <div class="wf-tags">
+          <span class="wf-tag">NSE A/B+/B/C+</span>
+          <span class="wf-tag">zona mapping</span>
+          <span class="wf-tag">scoring</span>
+        </div>
+      </div>
+
+      <!-- WF6 -->
+      <div class="wf-card fade-up d6">
+        <div class="wf-num">06</div>
+        <div class="wf-icon">🕵️</div>
+        <div class="wf-title">WF6 — Competitor Gap Intelligence</div>
+        <div class="wf-desc">
+          Detecta familias insatisfechas en colegios competidores. 
+          Monitorea reseñas, comentarios y señales de cambio para captarlas en el momento ideal.
+        </div>
+        <div class="wf-trigger">⚡ Trigger: Monitor continuo</div>
+        <div class="wf-tags">
+          <span class="wf-tag">competencia</span>
+          <span class="wf-tag">sentiment</span>
+          <span class="wf-tag">oportunidad</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ===== SCORING VARIABLES ===== -->
+<section id="scoring">
+  <div class="container">
+    <div class="fade-up">
+      <span class="section-tag">Inteligencia</span>
+      <h2 class="section-title">Variables de<br/><span class="teal">Scoring IA</span></h2>
+      <p class="section-desc">
+        Cada prospecto recibe 6 scores calculados en tiempo real. 
+        Solo pasan al outreach los que superan el umbral de calificación.
+      </p>
+    </div>
+
+    <div class="scoring-grid">
+
+      <div class="score-card fade-up d1">
+        <div class="score-header">
+          <div class="score-icon">💰</div>
+          <div>
+            <div class="score-name">Poder Adquisitivo</div>
+            <div class="score-var">poder_adquisitivo_score</div>
+          </div>
+        </div>
+        <div class="score-bar-wrap"><div class="score-bar" data-width="90"></div></div>
+        <div class="score-desc">¿Puede pagar $350/mes? Señales: zona residencial, tipo de vehículo, actividad profesional en LinkedIn/redes, zona NSE.</div>
+        <div class="score-range">Escala 0–10 · Umbral mínimo: 6</div>
+      </div>
+
+      <div class="score-card fade-up d2">
+        <div class="score-header">
+          <div class="score-icon">🎯</div>
+          <div>
+            <div class="score-name">Intención de Compra</div>
+            <div class="score-var">intent_score</div>
+          </div>
+        </div>
+        <div class="score-bar-wrap"><div class="score-bar" data-width="85"></div></div>
+        <div class="score-desc">¿Está buscando activamente colegio? Keywords detectados: "matrícula 2026", "mejor colegio", "educación bilingüe Quito".</div>
+        <div class="score-range">Escala 0–10 · Alto impacto en prioridad</div>
+      </div>
+
+      <div class="score-card fade-up d3">
+        <div class="score-header">
+          <div class="score-icon">📍</div>
+          <div>
+            <div class="score-name">Zona NSE</div>
+            <div class="score-var">zona_nse</div>
+          </div>
+        </div>
+        <div class="score-bar-wrap"><div class="score-bar orange" data-width="75"></div></div>
+        <div class="score-desc">Clasificación del sector residencial del prospecto: A (alto) → B+ → B → C+. Determina el campus sugerido.</div>
+        <div class="score-range">Categoría: A / B+ / B / C+</div>
+      </div>
+
+      <div class="score-card fade-up d4">
+        <div class="score-header">
+          <div class="score-icon">🗺️</div>
+          <div>
+            <div class="score-name">Distancia a Sede</div>
+            <div class="score-var">distancia_sede_km</div>
+          </div>
+        </div>
+        <div class="score-bar-wrap"><div class="score-bar" data-width="70"></div></div>
+        <div class="score-desc">Kilómetros al campus más cercano. Prioridad máxima a ≤3km. Penalización gradual hasta 10km límite.</div>
+        <div class="score-range">Radio óptimo: ≤5km · Máx 10km</div>
+      </div>
+
+      <div class="score-card fade-up d5">
+        <div class="score-header">
+          <div class="score-icon">🤖</div>
+          <div>
+            <div class="score-name">Afinidad Tecnológica</div>
+            <div class="score-var">tech_affinity</div>
+          </div>
+        </div>
+        <div class="score-bar-wrap"><div class="score-bar orange" data-width="80"></div></div>
+        <div class="score-desc">¿Valoran la tecnología educativa? Señales: usa apps, LinkedIn activo, segue cuentas tech, trabajo en startups/tech.</div>
+        <div class="score-range">Escala 0–10 · Alineación con VR/Metaverso</div>
+      </div>
+
+      <div class="score-card fade-up d6">
+        <div class="score-header">
+          <div class="score-icon">⭐</div>
+          <div>
+            <div class="score-name">Eight Academy Fit</div>
+            <div class="score-var">fit_score</div>
+          </div>
+        </div>
+        <div class="score-bar-wrap"><div class="score-bar" data-width="95"></div></div>
+        <div class="score-desc">Score combinado: qué tan bien encaja con los valores de Eight Academy. Pondera todos los anteriores + datos cualitativos.</div>
+        <div class="score-range">Score final 0–10 · &gt;7 = outreach automático</div>
+      </div>
+
+    </div>
+
+    <!-- Scoring Formula -->
+    <div class="fade-up" style="margin-top:40px;background:var(--navy-l);border:1px solid rgba(25,176,146,0.2);border-radius:var(--radius);padding:28px 32px;">
+      <div style="font-size:.75rem;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:var(--teal);margin-bottom:16px;">🧮 Fórmula de Calificación</div>
+      <div style="font-family:monospace;font-size:.92rem;color:rgba(255,255,255,0.8);background:rgba(0,0,0,.3);padding:16px 20px;border-radius:8px;line-height:2;">
+        fit_score = (<span style="color:var(--teal-l)">poder_adquisitivo</span> × 0.30) + 
+        (<span style="color:var(--orange)">intent_score</span> × 0.25) + 
+        (<span style="color:var(--teal-l)">tech_affinity</span> × 0.20) +<br/>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        (<span style="color:var(--orange)">nse_bonus</span> × 0.15) + 
+        (<span style="color:var(--teal-l)">distancia_bonus</span> × 0.10)
+      </div>
+      <div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:16px;">
+        <div style="font-size:.8rem;color:rgba(255,255,255,.5);">🟢 fit_score ≥ 7.0 → Outreach automático</div>
+        <div style="font-size:.8rem;color:rgba(255,255,255,.5);">🟡 5.0–6.9 → Cola nurturing</div>
+        <div style="font-size:.8rem;color:rgba(255,255,255,.5);">🔴 &lt; 5.0 → Descartado</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== PARALLAX ROI ===== -->
+<div class="parallax-section" id="roi-parallax">
+  <div class="parallax-bg" style="background-image:url('https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=1600&q=80');"></div>
+  <div class="parallax-overlay"></div>
+  <div class="parallax-content fade-up">
+    <div class="section-tag" style="justify-content:center;margin-bottom:16px;">ROI del Sistema</div>
+    <div class="big-title">
+      Inversión de <span class="orange">$350–500/mes</span><br/>
+      ROI Conservador: <span class="teal">2,500%</span>
+    </div>
+    <div class="sub">
+      El sistema trabaja 24/7. Cada lead calificado que se convierte a matrícula 
+      justifica varias veces el costo del sistema automatizado.
+    </div>
+
+    <div class="roi-metrics-grid">
+      <div class="roi-item fade-up d1">
+        <div class="roi-num">5-10</div>
+        <div class="roi-label">Leads/sem sin sistema</div>
+      </div>
+      <div class="roi-item fade-up d2">
+        <div class="roi-num teal">50-80</div>
+        <div class="roi-label">Leads calificados/sem con IA</div>
+      </div>
+      <div class="roi-item fade-up d3">
+        <div class="roi-num orange">8-12%</div>
+        <div class="roi-label">Tasa de conversión esperada</div>
+      </div>
+      <div class="roi-item fade-up d4">
+        <div class="roi-num teal">$350</div>
+        <div class="roi-label">Pensión mensual por alumno</div>
+      </div>
+      <div class="roi-item fade-up d5">
+        <div class="roi-num orange">2,500%</div>
+        <div class="roi-label">ROI conservador estimado</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== PIPELINE VISUAL ===== -->
+<section id="pipeline">
+  <div class="container">
+    <div class="fade-up">
+      <span class="section-tag">El Funnel</span>
+      <h2 class="section-title">Pipeline de<br/><span class="teal">Conversión Automatizado</span></h2>
+      <p class="section-desc">
+        Cada prospecto pasa por 6 etapas definidas. El sistema mueve automáticamente 
+        a cada familia a través del pipeline sin intervención humana.
+      </p>
+    </div>
+
+    <div class="pipeline-wrap fade-up d2">
+      <div class="pipe-stage">
+        <div class="pipe-icon">🌐</div>
+        <div class="pipe-label">Descubrimiento</div>
+        <div class="pipe-sub">Geo + Intent scan</div>
+        <div class="pipe-badge">WF1 + WF2</div>
+      </div>
+      <div class="pipe-stage">
+        <div class="pipe-icon">📊</div>
+        <div class="pipe-label">Scoring</div>
+        <div class="pipe-sub">6 variables evaluadas</div>
+        <div class="pipe-badge">WF5</div>
+      </div>
+      <div class="pipe-stage">
+        <div class="pipe-icon">✅</div>
+        <div class="pipe-label">Calificación</div>
+        <div class="pipe-sub">fit_score ≥ 7.0</div>
+        <div class="pipe-badge">Auto-filtro</div>
+      </div>
+      <div class="pipe-stage">
+        <div class="pipe-icon">✉️</div>
+        <div class="pipe-label">Outreach</div>
+        <div class="pipe-sub">Claude personaliza msg</div>
+        <div class="pipe-badge">WF3</div>
+      </div>
+      <div class="pipe-stage">
+        <div class="pipe-icon">🔄</div>
+        <div class="pipe-label">Follow-up</div>
+        <div class="pipe-sub">Secuencia automática</div>
+        <div class="pipe-badge">WF3 + WF4</div>
+      </div>
+      <div class="pipe-stage">
+        <div class="pipe-icon">🎓</div>
+        <div class="pipe-label">Matrícula</div>
+        <div class="pipe-sub">Alumno inscrito</div>
+        <div class="pipe-badge" style="background:rgba(245,155,35,.12);color:var(--orange);">🏆 Goal</div>
+      </div>
+    </div>
+
+    <!-- Pipeline stats bar -->
+    <div class="fade-up" style="margin-top:40px;display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:0;background:var(--navy-m);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;">
+      <div style="padding:20px 16px;text-align:center;border-right:1px solid var(--border);">
+        <div style="font-family:'Playfair Display',serif;font-size:1.6rem;font-weight:900;color:var(--teal-l);">~75</div>
+        <div style="font-size:.72rem;color:rgba(255,255,255,.5);">Descubiertos/sem</div>
+      </div>
+      <div style="padding:20px 16px;text-align:center;border-right:1px solid var(--border);">
+        <div style="font-family:'Playfair Display',serif;font-size:1.6rem;font-weight:900;color:var(--teal-l);">~60</div>
+        <div style="font-size:.72rem;color:rgba(255,255,255,.5);">Evaluados</div>
+      </div>
+      <div style="padding:20px 16px;text-align:center;border-right:1px solid var(--border);">
+        <div style="font-family:'Playfair Display',serif;font-size:1.6rem;font-weight:900;color:var(--orange);">~65</div>
+        <div style="font-size:.72rem;color:rgba(255,255,255,.5);">Calificados</div>
+      </div>
+      <div style="padding:20px 16px;text-align:center;border-right:1px solid var(--border);">
+        <div style="font-family:'Playfair Display',serif;font-size:1.6rem;font-weight:900;color:var(--teal-l);">~55</div>
+        <div style="font-size:.72rem;color:rgba(255,255,255,.5);">Contactados</div>
+      </div>
+      <div style="padding:20px 16px;text-align:center;border-right:1px solid var(--border);">
+        <div style="font-family:'Playfair Display',serif;font-size:1.6rem;font-weight:900;color:var(--orange);">~20</div>
+        <div style="font-size:.72rem;color:rgba(255,255,255,.5);">En Follow-up</div>
+      </div>
+      <div style="padding:20px 16px;text-align:center;">
+        <div style="font-family:'Playfair Display',serif;font-size:1.6rem;font-weight:900;color:var(--orange);">4-7</div>
+        <div style="font-size:.72rem;color:rgba(255,255,255,.5);">Matrículas/sem</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== PERSONAS ===== -->
+<section id="personas">
+  <div class="container">
+    <div class="fade-up">
+      <span class="section-tag">Target</span>
+      <h2 class="section-title">Personas<br/><span class="teal">Objetivo del Sistema</span></h2>
+      <p class="section-desc">
+        El sistema identifica y personaliza el mensaje para cada perfil de familia. 
+        Cada persona recibe un enfoque distinto.
+      </p>
+    </div>
+
+    <div class="persona-grid">
+      <div class="persona-card fade-up d1">
+        <div class="persona-avatar">👨‍💻</div>
+        <div class="persona-title">Familia Tech-Emprendedora</div>
+        <div class="persona-sub">Padres 28–45 · Profesionales / Founders</div>
+        <div class="persona-tags">
+          <span class="p-tag">NSE A-B+</span>
+          <span class="p-tag">$2,500–7,000/mes</span>
+          <span class="p-tag">Tech-savvy</span>
+          <span class="p-tag">Norte Quito</span>
+        </div>
+        <div class="persona-trigger">
+          Quieren que sus hijos aprendan a emprender y usar tecnología. 
+          El Metaverso y los Emprendimientos Digitales son su gancho perfecto.
+        </div>
+        <div class="persona-score">
+          <div class="ps-item">Tech Affinity: <span>9+</span></div>
+          <div class="ps-item">Poder Adq.: <span>8+</span></div>
+          <div class="ps-item">Campus: <span>Primaria/Sec.</span></div>
+        </div>
+      </div>
+
+      <div class="persona-card fade-up d2">
+        <div class="persona-avatar">👩‍👧</div>
+        <div class="persona-title">Familia Aspiracional</div>
+        <div class="persona-sub">Padres que buscan diferenciación educativa</div>
+        <div class="persona-tags">
+          <span class="p-tag">NSE B-B+</span>
+          <span class="p-tag">Movilidad social</span>
+          <span class="p-tag">Bilingüismo</span>
+          <span class="p-tag">Promo-sensible</span>
+        </div>
+        <div class="persona-trigger">
+          Quieren lo mejor para sus hijos pero son sensibles al precio. 
+          La promo <strong>SIN MATRÍCULA</strong> y las semibecas son su gancho principal.
+        </div>
+        <div class="persona-score">
+          <div class="ps-item">Intent Score: <span>8+</span></div>
+          <div class="ps-item">Promo Hook: <span>Alto</span></div>
+          <div class="ps-item">Campus: <span>Cualquiera</span></div>
+        </div>
+      </div>
+
+      <div class="persona-card b2b fade-up d3">
+        <div class="persona-avatar">🏫</div>
+        <div class="persona-title">Colegios Aliados (B2B)</div>
+        <div class="persona-sub">Instituciones para alianzas y derivación</div>
+        <div class="persona-tags">
+          <span class="p-tag">B2B</span>
+          <span class="p-tag">Derivación alumnos</span>
+          <span class="p-tag">Alianzas estratégicas</span>
+        </div>
+        <div class="persona-trigger">
+          Colegios que no tienen uno de los niveles (ej: solo primaria) 
+          pueden derivar alumnos a Eight Academy y vice-versa.
+        </div>
+        <div class="persona-score">
+          <div class="ps-item">Tipo: <span>Institución</span></div>
+          <div class="ps-item">WF: <span>WF6</span></div>
+          <div class="ps-item">Canal: <span>Email B2B</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== ANTES VS DESPUÉS ===== -->
+<section id="avd" style="background:var(--navy);">
+  <div class="container">
+    <div class="fade-up">
+      <span class="section-tag">Transformación</span>
+      <h2 class="section-title">Antes vs <span class="teal">Después</span></h2>
+      <p class="section-desc">El impacto real del sistema en el proceso de admisiones.</p>
+    </div>
+
+    <div class="avd-grid">
+      <div class="avd-col before fade-up d1">
+        <div class="avd-header">❌ Sin el Sistema</div>
+        <div class="avd-body">
+          <div class="avd-item"><span class="ico">😓</span><span class="txt">5–10 leads/semana buscados manualmente</span></div>
+          <div class="avd-item"><span class="ico">📞</span><span class="txt">Llamadas en frío sin datos del prospecto</span></div>
+          <div class="avd-item"><span class="ico">📝</span><span class="txt">CRM manual, datos desactualizados</span></div>
+          <div class="avd-item"><span class="ico">⏰</span><span class="txt">Horas del equipo en tareas repetitivas</span></div>
+          <div class="avd-item"><span class="ico">🎲</span><span class="txt">Sin segmentación NSE ni scoring</span></div>
+          <div class="avd-item"><span class="ico">📉</span><span class="txt">Tasa conversión impredecible</span></div>
+          <div class="avd-item"><span class="ico">🌙</span><span class="txt">Sin cobertura nocturna ni fines de semana</span></div>
+          <div class="avd-item"><span class="ico">💸</span><span class="txt">CAC (Costo Adquisición Cliente) alto y desconocido</span></div>
+        </div>
+      </div>
+
+      <div class="avd-col after fade-up d2">
+        <div class="avd-header">✅ Con el Sistema IA</div>
+        <div class="avd-body">
+          <div class="avd-item"><span class="ico">🚀</span><span class="txt">50–80 leads calificados/semana, automático</span></div>
+          <div class="avd-item"><span class="ico">🤖</span><span class="txt">Mensajes personalizados por Claude AI con contexto</span></div>
+          <div class="avd-item"><span class="ico">📊</span><span class="txt">Pipeline visual en tiempo real, datos limpios</span></div>
+          <div class="avd-item"><span class="ico">⚡</span><span class="txt">Equipo enfocado solo en conversaciones calientes</span></div>
+          <div class="avd-item"><span class="ico">🎯</span><span class="txt">6 scores: NSE, intención, distancia, tech-fit</span></div>
+          <div class="avd-item"><span class="ico">📈</span><span class="txt">8–12% conversión esperada sobre leads calificados</span></div>
+          <div class="avd-item"><span class="ico">🌙</span><span class="txt">Sistema activo 24/7, los 365 días</span></div>
+          <div class="avd-item"><span class="ico">💰</span><span class="txt">CAC medido, ROI 2,500% conservador</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== PARALLAX 3: TECH ===== -->
+<div class="parallax-section">
+  <div class="parallax-bg" style="background-image:url('https://images.unsplash.com/photo-1509062522246-3755977927d7?w=1600&q=80');"></div>
+  <div class="parallax-overlay" style="background:linear-gradient(135deg,rgba(13,27,42,.75) 0%,rgba(13,27,42,.5) 100%);"></div>
+  <div class="parallax-content fade-up">
+    <div class="big-title">
+      Tecnología al servicio<br/>de <span class="orange">la educación del futuro</span>
+    </div>
+    <div class="sub">
+      Eight Academy no solo enseña tecnología — la usa para encontrar 
+      a las familias que más encajan con su visión educativa.
+    </div>
+    <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:10px;">
+      <span style="background:rgba(25,176,146,0.15);border:1px solid rgba(25,176,146,.3);padding:8px 18px;border-radius:99px;font-size:.8rem;font-weight:700;">n8n Workflows</span>
+      <span style="background:rgba(245,155,35,0.15);border:1px solid rgba(245,155,35,.3);padding:8px 18px;border-radius:99px;font-size:.8rem;font-weight:700;color:var(--orange);">Claude Sonnet AI</span>
+      <span style="background:rgba(25,176,146,0.15);border:1px solid rgba(25,176,146,.3);padding:8px 18px;border-radius:99px;font-size:.8rem;font-weight:700;">OpenClaw Bridge</span>
+      <span style="background:rgba(245,155,35,0.15);border:1px solid rgba(245,155,35,.3);padding:8px 18px;border-radius:99px;font-size:.8rem;font-weight:700;color:var(--orange);">NSE Intelligence</span>
+    </div>
+  </div>
+</div>
+
+<!-- ===== ROADMAP ===== -->
+<section id="roadmap">
+  <div class="container">
+    <div class="fade-up">
+      <span class="section-tag">Implementación</span>
+      <h2 class="section-title">Setup en<br/><span class="teal">4 Semanas</span></h2>
+      <p class="section-desc">
+        Desde cero hasta sistema activo captando leads en menos de un mes. 
+        Cronograma probado y optimizado.
+      </p>
+    </div>
+
+    <div class="roadmap-weeks">
+      <div class="week-card fade-up d1">
+        <div class="week-num">1</div>
+        <div class="week-title">Configuración Base</div>
+        <ul class="week-tasks">
+          <li>Instalar n8n en servidor</li>
+          <li>Configurar APIs (WhatsApp, Gmail)</li>
+          <li>Definir zonas NSE de Quito</li>
+          <li>Setup OpenClaw Bridge</li>
+          <li>Credenciales Claude/Anthropic</li>
+        </ul>
+      </div>
+
+      <div class="week-card fade-up d2">
+        <div class="week-num">2</div>
+        <div class="week-title">Workflows 1-3</div>
+        <ul class="week-tasks">
+          <li>WF1: Geo Family Discovery</li>
+          <li>WF2: Intent Keywords Engine</li>
+          <li>WF3: Outreach Automation</li>
+          <li>Prompts Claude personalizados</li>
+          <li>Test con datos reales</li>
+        </ul>
+      </div>
+
+      <div class="week-card fade-up d3">
+        <div class="week-num">3</div>
+        <div class="week-title">Workflows 4-6 + Scoring</div>
+        <ul class="week-tasks">
+          <li>WF4: OpenClaw Bridge</li>
+          <li>WF5: NSE Zone Mapper</li>
+          <li>WF6: Competitor Intel</li>
+          <li>Calibrar scoring variables</li>
+          <li>Integrar pipeline visual</li>
+        </ul>
+      </div>
+
+      <div class="week-card fade-up d4">
+        <div class="week-num" style="background:linear-gradient(135deg,var(--orange),var(--orange-d));">🚀</div>
+        <div class="week-title">Lanzamiento & Optimización</div>
+        <ul class="week-tasks">
+          <li>Go-live sistema completo</li>
+          <li>Monitorear primeros leads</li>
+          <li>A/B test mensajes outreach</li>
+          <li>Ajuste scoring thresholds</li>
+          <li>Dashboard métricas entregado</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Deliverables -->
+    <div class="fade-up" style="margin-top:50px;background:var(--navy-m);border:1px solid var(--border);border-radius:var(--radius);padding:32px;">
+      <div style="font-size:.75rem;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:var(--teal);margin-bottom:20px;">📦 Entregables del Proyecto</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;">
+        <div style="display:flex;align-items:flex-start;gap:10px;">
+          <span style="color:var(--teal);font-weight:700;flex-shrink:0;">✓</span>
+          <span style="font-size:.85rem;color:rgba(255,255,255,.7);">6 workflows n8n configurados y documentados</span>
+        </div>
+        <div style="display:flex;align-items:flex-start;gap:10px;">
+          <span style="color:var(--teal);font-weight:700;flex-shrink:0;">✓</span>
+          <span style="font-size:.85rem;color:rgba(255,255,255,.7);">Mapa NSE de Quito cargado en sistema</span>
+        </div>
+        <div style="display:flex;align-items:flex-start;gap:10px;">
+          <span style="color:var(--teal);font-weight:700;flex-shrink:0;">✓</span>
+          <span style="font-size:.85rem;color:rgba(255,255,255,.7);">Plantillas de mensajes por persona (3 tipos)</span>
+        </div>
+        <div style="display:flex;align-items:flex-start;gap:10px;">
+          <span style="color:var(--teal);font-weight:700;flex-shrink:0;">✓</span>
+          <span style="font-size:.85rem;color:rgba(255,255,255,.7);">Dashboard de métricas en tiempo real</span>
+        </div>
+        <div style="display:flex;align-items:flex-start;gap:10px;">
+          <span style="color:var(--teal);font-weight:700;flex-shrink:0;">✓</span>
+          <span style="font-size:.85rem;color:rgba(255,255,255,.7);">Manual de operación para el equipo</span>
+        </div>
+        <div style="display:flex;align-items:flex-start;gap:10px;">
+          <span style="color:var(--teal);font-weight:700;flex-shrink:0;">✓</span>
+          <span style="font-size:.85rem;color:rgba(255,255,255,.7);">30 días de soporte post-lanzamiento</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== CTA FINAL ===== -->
+<section id="cta-final">
+  <div class="cta-inner">
+    <div class="promo-badge" style="margin-bottom:28px;">
+      <span class="trophy">🎓</span>
+      SIN MATRÍCULA 2026/2027 — ¡Actívalo ya!
+    </div>
+    <h2 class="cta-title">
+      ¿Listo para que Eight Academy<br/>
+      capte <span class="teal">80 leads/semana</span><br/>
+      con IA?
+    </h2>
+    <p class="cta-desc">
+      El sistema está diseñado y listo para implementar. Contáctanos para una 
+      demo del sistema IA o para consultar sobre admisiones directamente.
+    </p>
+    <div class="cta-btns">
+      <a href="https://wa.me/593XXXXXXXXX?text=Hola!%20Vi%20el%20sistema%20IA%20de%20admisiones%20de%20Eight%20Academy%20y%20quiero%20más%20información" 
+         class="btn-wa" target="_blank">
+        💬 WhatsApp Admisiones Eight Academy
+      </a>
+      <a href="mailto:admisiones@eightacademy.edu.ec?subject=Sistema%20IA%20Admisiones%20-%20Solicito%20Demo" 
+         class="btn-n8n">
+        ✉️ Email — Demo del Sistema
+      </a>
+    </div>
+
+    <div style="margin-top:48px;display:flex;flex-wrap:wrap;gap:12px;justify-content:center;">
+      <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);padding:10px 20px;border-radius:12px;font-size:.8rem;color:rgba(255,255,255,.5);">
+        🏫 4 Campus en Quito
+      </div>
+      <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);padding:10px 20px;border-radius:12px;font-size:.8rem;color:rgba(255,255,255,.5);">
+        💰 Pensión $350 USD/mes
+      </div>
+      <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);padding:10px 20px;border-radius:12px;font-size:.8rem;color:rgba(255,255,255,.5);">
+        🏅 Becas y Semibecas disponibles
+      </div>
+      <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);padding:10px 20px;border-radius:12px;font-size:.8rem;color:rgba(255,255,255,.5);">
+        🥽 Aulas de Metaverso & VR
+      </div>
+      <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);padding:10px 20px;border-radius:12px;font-size:.8rem;color:rgba(255,255,255,.5);">
+        🌿 Zoo Botánica — Única en Ecuador
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== FOOTER ===== -->
+<footer>
+  <p>
+    © 2025 Eight Academy · "Construimos la Educación del Futuro" ·
+    Sistema IA de Admisiones v2.0 · Powered by 
+    <a href="#workflows">n8n + Claude Sonnet</a>
+  </p>
+  <p style="margin-top:8px;font-size:.72rem;color:rgba(255,255,255,.18);">
+    Este documento es una presentación técnica del sistema de automatización. 
+    El número de WhatsApp debe ser configurado antes del deploy.
+  </p>
+</footer>
+
+<!-- ===== SCRIPTS ===== -->
+<script>
+  /* ---- NAVBAR SCROLL ---- */
+  const navbar = document.getElementById('navbar');
+  window.addEventListener('scroll', () => {
+    navbar.classList.toggle('scrolled', window.scrollY > 60);
+  }, { passive: true });
+
+  /* ---- INTERSECTION OBSERVER: fade-up ---- */
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.classList.add('visible');
+        // Score bars
+        const bar = e.target.querySelector('.score-bar');
+        if (bar) {
+          setTimeout(() => {
+            bar.style.width = bar.dataset.width + '%';
+          }, 300);
+        }
+      }
+    });
+  }, { threshold: 0.12 });
+
+  document.querySelectorAll('.fade-up').forEach(el => observer.observe(el));
+
+  // Also observe score bars individually
+  document.querySelectorAll('.score-card').forEach(card => {
+    const bar = card.querySelector('.score-bar');
+    if (!bar) return;
+    const cardObs = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          setTimeout(() => { bar.style.width = bar.dataset.width + '%'; }, 400);
+          cardObs.unobserve(e.target);
+        }
+      });
+    }, { threshold: 0.3 });
+    cardObs.observe(card);
+  });
+
+  /* ---- ANIMATED COUNTERS ---- */
+  function animateCounter(el, target, duration = 1800) {
+    let start = 0;
+    const isFloat = target.toString().includes('.');
+    const step = (timestamp) => {
+      if (!start) start = timestamp;
+      const progress = Math.min((timestamp - start) / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      const current = Math.round(eased * target);
+      el.textContent = current.toLocaleString('es');
+      if (progress < 1) requestAnimationFrame(step);
+      else el.textContent = target.toLocaleString('es');
+    };
+    requestAnimationFrame(step);
+  }
+
+  const counterObs = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        const target = parseFloat(e.target.dataset.target);
+        animateCounter(e.target, target);
+        counterObs.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.5 });
+
+  document.querySelectorAll('[data-target]').forEach(el => counterObs.observe(el));
+
+  /* ---- PARTICLES CANVAS ---- */
+  const canvas = document.getElementById('particles-canvas');
+  const ctx = canvas.getContext('2d');
+
+  function resizeCanvas() {
+    canvas.width = canvas.offsetWidth;
+    canvas.height = canvas.offsetHeight;
+  }
+  resizeCanvas();
+  window.addEventListener('resize', resizeCanvas, { passive: true });
+
+  const PARTICLE_COUNT = 70;
+  const particles = [];
+
+  for (let i = 0; i < PARTICLE_COUNT; i++) {
+    particles.push({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      r: Math.random() * 2 + 0.5,
+      dx: (Math.random() - 0.5) * 0.4,
+      dy: (Math.random() - 0.5) * 0.4,
+      alpha: Math.random() * 0.5 + 0.1,
+      color: Math.random() > 0.5 ? '25,176,146' : '245,155,35'
+    });
+  }
+
+  function drawParticles() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    particles.forEach(p => {
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(${p.color},${p.alpha})`;
+      ctx.fill();
+
+      // Connect nearby particles
+      particles.forEach(p2 => {
+        const dist = Math.hypot(p.x - p2.x, p.y - p2.y);
+        if (dist < 90) {
+          ctx.beginPath();
+          ctx.moveTo(p.x, p.y);
+          ctx.lineTo(p2.x, p2.y);
+          ctx.strokeStyle = `rgba(${p.color},${0.06 * (1 - dist / 90)})`;
+          ctx.lineWidth = 0.5;
+          ctx.stroke();
+        }
+      });
+
+      p.x += p.dx;
+      p.y += p.dy;
+      if (p.x < 0 || p.x > canvas.width) p.dx *= -1;
+      if (p.y < 0 || p.y > canvas.height) p.dy *= -1;
+    });
+
+    requestAnimationFrame(drawParticles);
+  }
+  drawParticles();
+
+  /* ---- SMOOTH SCROLL for anchor links ---- */
+  document.querySelectorAll('a[href^="#"]').forEach(a => {
+    a.addEventListener('click', e => {
+      e.preventDefault();
+      const target = document.querySelector(a.getAttribute('href'));
+      if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  });
+</script>
+
+</body>
+</html>

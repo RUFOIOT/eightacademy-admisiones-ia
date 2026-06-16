@@ -1,0 +1,250 @@
+{
+  "name": "📨 EA v2 — WF3: Smart Outreach (Eight Academy ADN)",
+  "_version": "2.0",
+  "_description": "Outreach hiper-personalizado con el ADN completo de Eight Academy: $350/mes, SIN MATRÍCULA 2026/2027, metaverso, emprendimientos digitales, zoo botánica. Diferencia entre prospectos B2C (familias) y B2B (colegios). Claude Sonnet redacta mensajes específicos por tipo de prospecto.",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "ea-v2-outreach",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "ov2-0001",
+      "name": "🌐 Webhook — Nuevo Lead Tier A/B",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [200, 400],
+      "webhookId": "ea-v2-outreach"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\"status\": \"received\", \"lead\": \"{{ $json.body.Nombre_Lugar || $json.body.Nombre }}\", \"tier\": \"{{ $json.body.Tier }}\"}",
+        "options": {}
+      },
+      "id": "ov2-0002",
+      "name": "✅ Responder OK",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [420, 240]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {"id": "s1", "name": "lead_name", "value": "={{ $json.body.Nombre_Lugar || $json.body.Nombre }}", "type": "string"},
+            {"id": "s2", "name": "lead_type", "value": "={{ $json.body.Tipo_Prospecto || 'colegio' }}", "type": "string"},
+            {"id": "s3", "name": "lead_address", "value": "={{ $json.body.Direccion }}", "type": "string"},
+            {"id": "s4", "name": "lead_sede", "value": "={{ $json.body.Sede_Mas_Cercana || '' }}", "type": "string"},
+            {"id": "s5", "name": "lead_nivel", "value": "={{ $json.body.Nivel_Sede || '' }}", "type": "string"},
+            {"id": "s6", "name": "lead_zona_nse", "value": "={{ $json.body.Zona_NSE || 'B' }}", "type": "string"},
+            {"id": "s7", "name": "lead_poder_adq", "value": "={{ $json.body.Score_Poder_Adquisitivo || 5 }}", "type": "number"},
+            {"id": "s8", "name": "lead_score", "value": "={{ $json.body.Score_Final || $json.body.Score_IA || 5 }}", "type": "number"},
+            {"id": "s9", "name": "lead_tier", "value": "={{ $json.body.Tier || 'B' }}", "type": "string"},
+            {"id": "s10", "name": "lead_perfil", "value": "={{ $json.body.Perfil_Familiar || $json.body.Persona_Objetivo || '' }}", "type": "string"},
+            {"id": "s11", "name": "lead_hook", "value": "={{ $json.body.Hook_Personalizado || $json.body.Motivo_IA || '' }}", "type": "string"},
+            {"id": "s12", "name": "lead_canal", "value": "={{ $json.body.Canal_Contacto || $json.body.Canal_Outreach || 'whatsapp' }}", "type": "string"},
+            {"id": "s13", "name": "lead_distancia", "value": "={{ $json.body.Distancia_Sede_km || '' }}", "type": "string"},
+            {"id": "s14", "name": "lead_website", "value": "={{ $json.body.Sitio_Web || '' }}", "type": "string"},
+            {"id": "s15", "name": "lead_phone", "value": "={{ $json.body.Telefono || '' }}", "type": "string"}
+          ]
+        },
+        "options": {}
+      },
+      "id": "ov2-0003",
+      "name": "💾 Extraer Datos Lead",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [420, 480]
+    },
+    {
+      "parameters": {
+        "dataType": "string",
+        "value1": "={{ $json.lead_zona_nse }}",
+        "rules": {
+          "rules": [
+            {"value2": "A", "output": 0},
+            {"value2": "B+", "output": 1}
+          ]
+        },
+        "fallbackOutput": 2
+      },
+      "id": "ov2-0004",
+      "name": "🔀 Router — NSE (A / B+ / B-C)",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3,
+      "position": [640, 480]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {"name": "x-api-key", "value": "={{ $vars.ANTHROPIC_API_KEY }}"},
+            {"name": "anthropic-version", "value": "2023-06-01"},
+            {"name": "content-type", "value": "application/json"}
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"claude-3-5-sonnet-20241022\",\n  \"max_tokens\": 1500,\n  \"messages\": [{\n    \"role\": \"user\",\n    \"content\": \"Eres el Director de Admisiones de Eight Academy, el colegio más innovador del Ecuador. Redacta un mensaje de outreach PREMIUM para una familia de perfil NSE A (ingreso $7,000+/mes).\\n\\nPROSPECTO:\\n- Lugar: {{ $json.lead_name }}\\n- Tipo: {{ $json.lead_type }}\\n- Dirección: {{ $json.lead_address }}\\n- Sede más cercana: {{ $json.lead_sede }} (a {{ $json.lead_distancia }}km)\\n- Perfil: {{ $json.lead_perfil }}\\n- NSE: A (élite)\\n- Hook detectado: {{ $json.lead_hook }}\\n\\nEIGHT ACADEMY — PROPUESTA EXCLUSIVA NSE A:\\n✨ Educación más innovadora del Ecuador\\n🥽 Únicos con Aulas de Metaverso y Realidad Virtual\\n🚀 Emprendimientos Digitales como materia (único en Ecuador)\\n🌿 Zoo Botánica Academy (experiencia única)\\n🎓 Bilingüe desde Inicial\\n💰 Pensión: $350/mes | SIN MATRÍCULA 2026/2027\\n🏆 Becas de excelencia disponibles\\n\\nDEVUELVE JSON:\\n{\\n  \\\"subject\\\": \\\"asunto impactante máx 60 chars\\\",\\n  \\\"whatsapp_message\\\": \\\"mensaje WA informal pero premium, 3 párrafos, incluye emojis, menciona VR/metaverso/emprendimiento, CTA visita guiada\\\",\\n  \\\"email_body_html\\\": \\\"email HTML formal premium, 3-4 párrafos\\\",\\n  \\\"email_body_text\\\": \\\"versión texto\\\",\\n  \\\"value_prop_personalizada\\\": \\\"propuesta específica para este prospecto\\\",\\n  \\\"cta\\\": \\\"llamada a la acción específica\\\",\\n  \\\"promo_angle\\\": \\\"cómo presentar SIN MATRÍCULA para NSE A (no enfocarse en precio, más en exclusividad)\\\",\\n  \\\"follow_up_days\\\": 3\\\n}\"\n  }]\n}",
+        "options": {}
+      },
+      "id": "ov2-0005",
+      "name": "🤖 Claude — Outreach NSE A (Premium)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [860, 280]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {"name": "x-api-key", "value": "={{ $vars.ANTHROPIC_API_KEY }}"},
+            {"name": "anthropic-version", "value": "2023-06-01"},
+            {"name": "content-type", "value": "application/json"}
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"claude-3-5-sonnet-20241022\",\n  \"max_tokens\": 1500,\n  \"messages\": [{\n    \"role\": \"user\",\n    \"content\": \"Eres el Director de Admisiones de Eight Academy. Redacta un mensaje para una familia NSE B+ ($3,500-7,000/mes).\\n\\nPROSPECTO:\\n- Lugar: {{ $json.lead_name }}\\n- Tipo: {{ $json.lead_type }}\\n- Dirección: {{ $json.lead_address }}\\n- Sede más cercana: {{ $json.lead_sede }}\\n- Perfil: {{ $json.lead_perfil }}\\n- NSE: B+\\n- Hook: {{ $json.lead_hook }}\\n\\nEIGHT ACADEMY:\\n🥽 Aulas de Metaverso y Realidad Virtual\\n🚀 Emprendimientos Digitales (único en Ecuador)\\n🌿 Zoo Botánica Academy\\n🎓 Bilingüe + Metodología Constructivista\\n💰 Pensión $350/mes\\n🎉 SIN MATRÍCULA para 2026/2027 (ahorro inmediato)\\n📚 Becas y Semibecas disponibles\\n\\nEste NSE valora: calidad+tecnología+futuro+diferenciación. Mencionar SIN MATRÍCULA como beneficio adicional pero no como gancho principal.\\n\\nDEVUELVE JSON:\\n{\\n  \\\"subject\\\": \\\"asunto\\\",\\n  \\\"whatsapp_message\\\": \\\"mensaje WA natural y cercano, menciona sin matrícula como ventaja extra\\\",\\n  \\\"email_body_html\\\": \\\"email HTML\\\",\\n  \\\"email_body_text\\\": \\\"texto plano\\\",\\n  \\\"value_prop_personalizada\\\": \\\"propuesta específica\\\",\\n  \\\"cta\\\": \\\"CTA específico\\\",\\n  \\\"promo_angle\\\": \\\"ángulo de la promo para este NSE\\\",\\n  \\\"follow_up_days\\\": 4\\\n}\"\n  }]\n}",
+        "options": {}
+      },
+      "id": "ov2-0006",
+      "name": "🤖 Claude — Outreach NSE B+ (Aspiracional)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [860, 480]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {"name": "x-api-key", "value": "={{ $vars.ANTHROPIC_API_KEY }}"},
+            {"name": "anthropic-version", "value": "2023-06-01"},
+            {"name": "content-type", "value": "application/json"}
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"claude-3-5-sonnet-20241022\",\n  \"max_tokens\": 1500,\n  \"messages\": [{\n    \"role\": \"user\",\n    \"content\": \"Eres el Director de Admisiones de Eight Academy. Redacta un mensaje para una familia NSE B ($2,000-3,500/mes) que puede calificar para becas.\\n\\nPROSPECTO:\\n- Lugar: {{ $json.lead_name }}\\n- Tipo: {{ $json.lead_type }}\\n- Dirección: {{ $json.lead_address }}\\n- Sede: {{ $json.lead_sede }}\\n- Perfil: {{ $json.lead_perfil }}\\n- Hook: {{ $json.lead_hook }}\\n\\nEIGHT ACADEMY:\\n🎉 *SIN MATRÍCULA 2026/2027* — ¡ahorra desde el primer día!\\n📚 *Becas y Semibecas* disponibles para familias calificadas\\n💰 Pensión $350/mes (caben en muchos presupuestos)\\n🥽 Aulas de Metaverso + Emprendimientos Digitales\\n🌿 Zoo Botánica\\n🎓 Bilingüe desde inicial\\n\\nPara NSE B: el gancho principal es la PROMOCIÓN SIN MATRÍCULA + BECAS. Presentar como inversión en el futuro del hijo, accesible.\\n\\nDEVUELVE JSON:\\n{\\n  \\\"subject\\\": \\\"asunto enfocado en promo\\\",\\n  \\\"whatsapp_message\\\": \\\"mensaje WA enfocado en SIN MATRÍCULA + becas, tono cálido y esperanzador\\\",\\n  \\\"email_body_html\\\": \\\"email HTML\\\",\\n  \\\"email_body_text\\\": \\\"texto plano\\\",\\n  \\\"value_prop_personalizada\\\": \\\"propuesta accesible\\\",\\n  \\\"cta\\\": \\\"CTA hacia formulario de becas\\\",\\n  \\\"promo_angle\\\": \\\"SIN MATRÍCULA + BECAS como gancho principal\\\",\\n  \\\"follow_up_days\\\": 5\\\n}\"\n  }]\n}",
+        "options": {}
+      },
+      "id": "ov2-0007",
+      "name": "🤖 Claude — Outreach NSE B (Becas)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [860, 680]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Parsear respuesta de Claude (sea cual sea el NSE branch)\nconst aiResp = $input.first().json;\nconst rawText = aiResp.content?.[0]?.text || '{}';\nconst leadData = $('💾 Extraer Datos Lead').first().json;\n\nlet email = {};\ntry {\n  const cleaned = rawText.replace(/```json/gi,'').replace(/```/gi,'').trim();\n  email = JSON.parse(cleaned);\n} catch(e) {\n  email = { subject: `Eight Academy × ${leadData.lead_name}`, whatsapp_message: rawText.substring(0,500), follow_up_days: 5 };\n}\n\nreturn [{ json: {\n  ...leadData,\n  email_subject: email.subject || '',\n  whatsapp_msg: email.whatsapp_message || '',\n  email_html: email.email_body_html || '',\n  email_text: email.email_body_text || '',\n  value_prop: email.value_prop_personalizada || '',\n  cta: email.cta || '',\n  promo_angle: email.promo_angle || '',\n  follow_up_days: email.follow_up_days || 5,\n  outreach_date: new Date().toISOString()\n}}];\n"
+      },
+      "id": "ov2-0008",
+      "name": "🔧 Parse Outreach Generado",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1120, 480]
+    },
+    {
+      "parameters": {
+        "dataType": "string",
+        "value1": "={{ $json.lead_canal }}",
+        "rules": {
+          "rules": [
+            {"value2": "whatsapp", "output": 0},
+            {"value2": "email", "output": 1}
+          ]
+        },
+        "fallbackOutput": 0
+      },
+      "id": "ov2-0009",
+      "name": "🔀 Router — Canal (WA / Email)",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3,
+      "position": [1340, 480]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $vars.OPENCLAW_WEBHOOK_URL }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"text\": \"📱 *Draft WhatsApp Listo — Eight Academy*\\n\\n🏠 *{{ $json.lead_name }}* | {{ $json.lead_tier }} | NSE {{ $json.lead_zona_nse }}\\n📍 {{ $json.lead_address }}\\n🏫 Sede: {{ $json.lead_sede }}\\n\\n*Mensaje para enviar:*\\n{{ $json.whatsapp_msg }}\\n\\n---\\n💡 {{ $json.value_prop }}\\n✅ CTA: {{ $json.cta }}\\n📅 Follow-up en {{ $json.follow_up_days }} días\"\n}",
+        "options": {}
+      },
+      "id": "ov2-0010",
+      "name": "📱 Enviar Draft WA a OpenClaw",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1560, 380]
+    },
+    {
+      "parameters": {
+        "sendTo": "admisiones@eightacademy.ec",
+        "subject": "=DRAFT — {{ $json.email_subject }}",
+        "emailType": "html",
+        "message": "=<div style='font-family:Arial;max-width:600px;'><h2>📧 Draft de Email — {{ $json.lead_name }}</h2><p><b>Para:</b> contacto del lugar ({{ $json.lead_address }})</p><p><b>Asunto:</b> {{ $json.email_subject }}</p><p><b>NSE:</b> {{ $json.lead_zona_nse }} | <b>Tier:</b> {{ $json.lead_tier }} | <b>Score:</b> {{ $json.lead_score }}/10</p><p><b>Sede más cercana:</b> {{ $json.lead_sede }}</p><p><b>Value Prop:</b> {{ $json.value_prop }}</p><p><b>Ángulo Promo:</b> {{ $json.promo_angle }}</p><hr>{{ $json.email_html }}<hr><p><small>CTA: {{ $json.cta }} | Follow-up en {{ $json.follow_up_days }} días</small></p></div>",
+        "options": {}
+      },
+      "id": "ov2-0011",
+      "name": "📧 Gmail — Draft Email",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [1560, 580],
+      "credentials": {"gmailOAuth2": {"id": "FILL_GMAIL_CRED_ID", "name": "Gmail Eight Academy"}}
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {"__rl": true, "value": "={{ $vars.LEADS_SHEET_ID }}", "mode": "id"},
+        "sheetName": {"__rl": true, "value": "Leads Familias", "mode": "name"},
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Estado": "Outreach Enviado",
+            "Canal Usado": "={{ $json.lead_canal }}",
+            "Fecha Outreach": "={{ $json.outreach_date }}",
+            "Follow Up Días": "={{ $json.follow_up_days }}",
+            "Email Subject": "={{ $json.email_subject }}",
+            "Promo Angle": "={{ $json.promo_angle }}"
+          }
+        },
+        "where": {"values": [{"column": "Nombre Lugar", "value": "={{ $json.lead_name }}"}]},
+        "options": {}
+      },
+      "id": "ov2-0012",
+      "name": "📊 Update Lead — Outreach Sent",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.4,
+      "position": [1780, 480],
+      "credentials": {"googleSheetsOAuth2Api": {"id": "FILL_GOOGLE_CRED_ID", "name": "Google Sheets (Eight Academy)"}}
+    }
+  ],
+  "connections": {
+    "🌐 Webhook — Nuevo Lead Tier A/B": {"main": [[{"node": "✅ Responder OK", "type": "main", "index": 0}, {"node": "💾 Extraer Datos Lead", "type": "main", "index": 0}]]},
+    "💾 Extraer Datos Lead": {"main": [[{"node": "🔀 Router — NSE (A / B+ / B-C)", "type": "main", "index": 0}]]},
+    "🔀 Router — NSE (A / B+ / B-C)": {"main": [[{"node": "🤖 Claude — Outreach NSE A (Premium)", "type": "main", "index": 0}], [{"node": "🤖 Claude — Outreach NSE B+ (Aspiracional)", "type": "main", "index": 0}], [{"node": "🤖 Claude — Outreach NSE B (Becas)", "type": "main", "index": 0}]]},
+    "🤖 Claude — Outreach NSE A (Premium)": {"main": [[{"node": "🔧 Parse Outreach Generado", "type": "main", "index": 0}]]},
+    "🤖 Claude — Outreach NSE B+ (Aspiracional)": {"main": [[{"node": "🔧 Parse Outreach Generado", "type": "main", "index": 0}]]},
+    "🤖 Claude — Outreach NSE B (Becas)": {"main": [[{"node": "🔧 Parse Outreach Generado", "type": "main", "index": 0}]]},
+    "🔧 Parse Outreach Generado": {"main": [[{"node": "🔀 Router — Canal (WA / Email)", "type": "main", "index": 0}]]},
+    "🔀 Router — Canal (WA / Email)": {"main": [[{"node": "📱 Enviar Draft WA a OpenClaw", "type": "main", "index": 0}], [{"node": "📧 Gmail — Draft Email", "type": "main", "index": 0}]]},
+    "📱 Enviar Draft WA a OpenClaw": {"main": [[{"node": "📊 Update Lead — Outreach Sent", "type": "main", "index": 0}]]},
+    "📧 Gmail — Draft Email": {"main": [[{"node": "📊 Update Lead — Outreach Sent", "type": "main", "index": 0}]]}
+  },
+  "active": false,
+  "settings": {"executionOrder": "v1"},
+  "versionId": "ea-wf3-v2",
+  "tags": [{"name": "eight-academy"}, {"name": "outreach"}, {"name": "nse-routing"}, {"name": "v2"}],
+  "_KEY_IMPROVEMENT": "Routea por NSE: A=exclusividad/metaverso, B+=innovación+sin matrícula como extra, B=sin matrícula+becas como gancho principal"
+}
