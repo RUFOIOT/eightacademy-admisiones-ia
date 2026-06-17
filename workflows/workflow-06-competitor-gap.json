@@ -230,7 +230,7 @@
     },
     {
       "parameters": {
-        "sendTo": "={{ $vars.ADMIN_EMAIL || 'admisiones@eightacademy.ec' }}",
+        "sendTo": "={{ $vars.ADMIN_EMAIL || 'bksegurosec@gmail.com' }}",
         "subject": "=🔔 Eight Academy — Alerta Lead: {{ $json.Nombre_Lugar || $json.keyword || 'Lead Nuevo' }}",
         "emailType": "text",
         "message": "=🔔 ALERTA EIGHT ACADEMY\n\n{{ $json.Nombre_Lugar || $json.keyword || JSON.stringify($json).substring(0,300) }}\n\nScore: {{ $json.Score_Final || $json.score || 'N/A' }}\nAcción: {{ $json.Accion_Recomendada || $json.accion || 'Revisar' }}",

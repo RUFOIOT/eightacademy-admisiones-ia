@@ -93,7 +93,7 @@
           "parameters": [
             {
               "name": "User-Agent",
-              "value": "EightAcademyLeadGen/1.0 (admisiones@eightacademy.ec)"
+              "value": "EightAcademyLeadGen/1.0 (bksegurosec@gmail.com)"
             }
           ]
         }
@@ -319,7 +319,7 @@
     },
     {
       "parameters": {
-        "sendTo": "={{ $vars.ADMIN_EMAIL || 'admisiones@eightacademy.ec' }}",
+        "sendTo": "={{ $vars.ADMIN_EMAIL || 'bksegurosec@gmail.com' }}",
         "subject": "=🔥 HOT LEAD Eight Academy — {{ $json.Nombre_Lugar }} ({{ $json.Tier }} | NSE {{ $json.Zona_NSE }})",
         "emailType": "html",
         "message": "=<div style='font-family:Arial,sans-serif;max-width:640px;'><div style='background:#b71c1c;color:#fff;padding:16px;border-radius:8px 8px 0 0;'><h2 style='margin:0'>🔥 HOT LEAD Familiar — Tier A</h2></div><div style='padding:20px;border:1px solid #e0e0e0;border-top:none;border-radius:0 0 8px 8px;'><table style='width:100%;border-collapse:collapse;'><tr><td style='padding:8px;background:#fff3e0;font-weight:bold'>📍 Lugar</td><td style='padding:8px'><strong>{{ $json.Nombre_Lugar }}</strong></td></tr><tr><td style='padding:8px;background:#fff3e0;font-weight:bold'>🏫 Sede</td><td style='padding:8px'>{{ $json.Sede_Mas_Cercana }} ({{ $json.Distancia_Sede_km }}km)</td></tr><tr><td style='padding:8px;background:#fff3e0;font-weight:bold'>💰 NSE</td><td style='padding:8px'>{{ $json.Zona_NSE }} | Adquisitivo: {{ $json.Score_Poder_Adquisitivo }}/10</td></tr><tr><td style='padding:8px;background:#fff3e0;font-weight:bold'>🎯 Score Final</td><td style='padding:8px'><strong>{{ $json.Score_Final }}/10</strong> | Fit EA: {{ $json.Score_Fit_EightAcademy }}/10</td></tr><tr><td style='padding:8px;background:#fff3e0;font-weight:bold'>👨‍👩‍👧 Perfil</td><td style='padding:8px'>{{ $json.Perfil_Familiar }}</td></tr><tr><td style='padding:8px;background:#fff3e0;font-weight:bold'>💬 Hook</td><td style='padding:8px'>{{ $json.Hook_Personalizado }}</td></tr><tr><td style='padding:8px;background:#fff3e0;font-weight:bold'>📲 Canal</td><td style='padding:8px'>{{ $json.Canal_Contacto }} | Urgencia: {{ $json.Urgencia }}</td></tr><tr><td style='padding:8px;background:#e8f5e9;font-weight:bold'>✅ Acción</td><td style='padding:8px'><strong>{{ $json.Accion_Recomendada }}</strong></td></tr></table></div></div>",

@@ -316,7 +316,7 @@
     },
     {
       "parameters": {
-        "sendTo": "={{ $vars.ADMIN_EMAIL || 'admisiones@eightacademy.ec' }}",
+        "sendTo": "={{ $vars.ADMIN_EMAIL || 'bksegurosec@gmail.com' }}",
         "subject": "=🔔 Eight Academy — Draft WhatsApp Listo: {{ $json.lead_name }} ({{ $json.lead_tier }} | NSE {{ $json.lead_zona_nse }})",
         "emailType": "html",
         "message": "=<div style='font-family:Arial,sans-serif;max-width:640px;margin:0 auto;'><div style='background:#1a237e;color:#fff;padding:20px;border-radius:8px 8px 0 0;'><h2 style='margin:0'>📱 Draft WhatsApp — Eight Academy</h2></div><div style='padding:20px;border:1px solid #e0e0e0;border-top:none;border-radius:0 0 8px 8px;'><table style='width:100%;border-collapse:collapse;margin-bottom:20px;'><tr><td style='padding:8px;background:#f5f5f5;font-weight:bold'>🏠 Lead</td><td style='padding:8px'>{{ $json.lead_name }}</td></tr><tr><td style='padding:8px;background:#f5f5f5;font-weight:bold'>📊 Tier / NSE</td><td style='padding:8px'>{{ $json.lead_tier }} | NSE {{ $json.lead_zona_nse }}</td></tr><tr><td style='padding:8px;background:#f5f5f5;font-weight:bold'>📍 Dirección</td><td style='padding:8px'>{{ $json.lead_address }}</td></tr><tr><td style='padding:8px;background:#f5f5f5;font-weight:bold'>🏫 Sede cercana</td><td style='padding:8px'>{{ $json.lead_sede }}</td></tr><tr><td style='padding:8px;background:#f5f5f5;font-weight:bold'>🎯 Score</td><td style='padding:8px'>{{ $json.lead_score }}/10</td></tr></table><div style='background:#e8f5e9;border-left:4px solid #2e7d32;padding:16px;border-radius:4px;margin-bottom:20px;'><h3 style='margin-top:0;color:#2e7d32'>📲 Mensaje WhatsApp (copiar y enviar):</h3><pre style='white-space:pre-wrap;font-family:Arial;'>{{ $json.whatsapp_msg }}</pre></div><div style='background:#e3f2fd;border-left:4px solid #1565c0;padding:12px;border-radius:4px;margin-bottom:12px;'><strong>💡 Value Prop:</strong> {{ $json.value_prop }}</div><div style='background:#fff3e0;border-left:4px solid #e65100;padding:12px;border-radius:4px;'><strong>✅ CTA:</strong> {{ $json.cta }}<br><strong>📅 Follow-up:</strong> {{ $json.follow_up_days }} días</div></div></div>",
@@ -339,7 +339,7 @@
     },
     {
       "parameters": {
-        "sendTo": "admisiones@eightacademy.ec",
+        "sendTo": "bksegurosec@gmail.com",
         "subject": "=DRAFT — {{ $json.email_subject }}",
         "emailType": "html",
         "message": "=<div style='font-family:Arial;max-width:600px;'><h2>📧 Draft de Email — {{ $json.lead_name }}</h2><p><b>Para:</b> contacto del lugar ({{ $json.lead_address }})</p><p><b>Asunto:</b> {{ $json.email_subject }}</p><p><b>NSE:</b> {{ $json.lead_zona_nse }} | <b>Tier:</b> {{ $json.lead_tier }} | <b>Score:</b> {{ $json.lead_score }}/10</p><p><b>Sede más cercana:</b> {{ $json.lead_sede }}</p><p><b>Value Prop:</b> {{ $json.value_prop }}</p><p><b>Ángulo Promo:</b> {{ $json.promo_angle }}</p><hr>{{ $json.email_html }}<hr><p><small>CTA: {{ $json.cta }} | Follow-up en {{ $json.follow_up_days }} días</small></p></div>",
