@@ -5,13 +5,23 @@
   "nodes": [
     {
       "parameters": {
-        "rule": {"interval": [{"field": "cronExpression", "expression": "0 7 * * 2,4"}]}
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 7 * * 2,4"
+            }
+          ]
+        }
       },
       "id": "ik2-0001",
       "name": "⏰ Trigger Mar/Jue 7AM",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.1,
-      "position": [200, 400]
+      "position": [
+        200,
+        400
+      ]
     },
     {
       "parameters": {
@@ -21,7 +31,10 @@
       "name": "⚙️ Config: 8 Intent Queries",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [420, 400]
+      "position": [
+        420,
+        400
+      ]
     },
     {
       "parameters": {
@@ -32,7 +45,10 @@
       "name": "🔄 Loop 8 Queries",
       "type": "n8n-nodes-base.splitInBatches",
       "typeVersion": 3,
-      "position": [640, 400]
+      "position": [
+        640,
+        400
+      ]
     },
     {
       "parameters": {
@@ -41,18 +57,39 @@
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
-            {"name": "Accept", "value": "application/json"},
-            {"name": "X-Subscription-Token", "value": "={{ $vars.BRAVE_API_KEY }}"}
+            {
+              "name": "Accept",
+              "value": "application/json"
+            },
+            {
+              "name": "X-Subscription-Token",
+              "value": "={{ $vars.BRAVE_API_KEY }}"
+            }
           ]
         },
         "sendQuery": true,
         "queryParameters": {
           "parameters": [
-            {"name": "q", "value": "={{ $json.query }}"},
-            {"name": "count", "value": "10"},
-            {"name": "country", "value": "ec"},
-            {"name": "search_lang", "value": "es"},
-            {"name": "freshness", "value": "pm"}
+            {
+              "name": "q",
+              "value": "={{ $json.query }}"
+            },
+            {
+              "name": "count",
+              "value": "10"
+            },
+            {
+              "name": "country",
+              "value": "ec"
+            },
+            {
+              "name": "search_lang",
+              "value": "es"
+            },
+            {
+              "name": "freshness",
+              "value": "pm"
+            }
           ]
         },
         "options": {}
@@ -61,7 +98,10 @@
       "name": "🔍 Brave Search — Intent Query",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [860, 400]
+      "position": [
+        860,
+        400
+      ]
     },
     {
       "parameters": {
@@ -71,13 +111,30 @@
       "name": "🔧 Parse Resultados",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1080, 400]
+      "position": [
+        1080,
+        400
+      ]
     },
     {
       "parameters": {
         "conditions": {
-          "options": {"caseSensitive": true, "leftValue": "", "typeValidation": "loose"},
-          "conditions": [{"id": "skip-check", "leftValue": "={{ $json._skip }}", "rightValue": true, "operator": {"type": "boolean", "operation": "notEquals"}}],
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "id": "skip-check",
+              "leftValue": "={{ $json._skip }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "notEquals"
+              }
+            }
+          ],
           "combinator": "and"
         },
         "options": {}
@@ -86,7 +143,10 @@
       "name": "⚡ ¿Tiene Resultados?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2,
-      "position": [1300, 400]
+      "position": [
+        1300,
+        400
+      ]
     },
     {
       "parameters": {
@@ -95,9 +155,18 @@
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
-            {"name": "x-api-key", "value": "={{ $vars.ANTHROPIC_API_KEY }}"},
-            {"name": "anthropic-version", "value": "2023-06-01"},
-            {"name": "content-type", "value": "application/json"}
+            {
+              "name": "x-api-key",
+              "value": "={{ $vars.ANTHROPIC_API_KEY }}"
+            },
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            },
+            {
+              "name": "content-type",
+              "value": "application/json"
+            }
           ]
         },
         "sendBody": true,
@@ -109,7 +178,10 @@
       "name": "🤖 Claude — Análisis de Intención",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [1520, 320]
+      "position": [
+        1520,
+        320
+      ]
     },
     {
       "parameters": {
@@ -119,13 +191,24 @@
       "name": "🔧 Parse Intent Signal",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1740, 320]
+      "position": [
+        1740,
+        320
+      ]
     },
     {
       "parameters": {
         "operation": "append",
-        "documentId": {"__rl": true, "value": "={{ $vars.LEADS_SHEET_ID }}", "mode": "id"},
-        "sheetName": {"__rl": true, "value": "Intent Signals", "mode": "name"},
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $vars.LEADS_SHEET_ID }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Intent Signals",
+          "mode": "name"
+        },
         "columns": {
           "mappingMode": "defineBelow",
           "value": {
@@ -145,25 +228,42 @@
             "Acciones Recomendadas": "={{ $json.Acciones }}"
           }
         },
-        "options": {"cellFormat": "USER_ENTERED"}
+        "options": {
+          "cellFormat": "USER_ENTERED"
+        }
       },
       "id": "ik2-0009",
       "name": "📊 Guardar Intent Signal",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.4,
-      "position": [1960, 320],
-      "credentials": {"googleSheetsOAuth2Api": {"id": "FILL_GOOGLE_CRED_ID", "name": "Google Sheets (Eight Academy)"}}
+      "position": [
+        1960,
+        320
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "",
+          "name": "Google Sheets (Eight Academy)"
+        }
+      }
     },
     {
       "parameters": {
         "conditions": {
-          "options": {"caseSensitive": true, "leftValue": "", "typeValidation": "loose"},
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
           "conditions": [
             {
               "id": "hot-check",
               "leftValue": "={{ $json._intent_strength }}",
               "rightValue": 7,
-              "operator": {"type": "number", "operation": "gte"}
+              "operator": {
+                "type": "number",
+                "operation": "gte"
+              }
             }
           ],
           "combinator": "and"
@@ -174,22 +274,33 @@
       "name": "🔥 ¿Intent ≥7? (Hot Signal)",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2,
-      "position": [2180, 320]
+      "position": [
+        2180,
+        320
+      ]
     },
     {
       "parameters": {
-        "method": "POST",
-        "url": "={{ $vars.OPENCLAW_WEBHOOK_URL }}",
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={\n  \"text\": \"🎯 *HOT INTENT SIGNAL — Eight Academy*\\n\\n🔍 Query: `{{ $json.Query }}`\\n⚡ Nivel: *{{ $json.Nivel_Intencion }}* | Fuerza: *{{ $json._intent_strength }}/10*\\n\\n🎯 {{ $json.Angulo_EA }}\\n\\n📋 Leads accionables:\\n{{ $json.Leads_Accionables }}\\n\\n📣 Oportunidad de contenido: {{ $json.Oportunidad_Contenido }}\\n\\n✅ Acciones: {{ $json.Acciones }}\"\n}",
+        "sendTo": "={{ $vars.ADMIN_EMAIL || 'admisiones@eightacademy.ec' }}",
+        "subject": "=🔔 Eight Academy — Alerta Lead: {{ $json.Nombre_Lugar || $json.keyword || 'Lead Nuevo' }}",
+        "emailType": "text",
+        "message": "=🔔 ALERTA EIGHT ACADEMY\n\n{{ $json.Nombre_Lugar || $json.keyword || JSON.stringify($json).substring(0,300) }}\n\nScore: {{ $json.Score_Final || $json.score || 'N/A' }}\nAcción: {{ $json.Accion_Recomendada || $json.accion || 'Revisar' }}",
         "options": {}
       },
       "id": "ik2-0011",
-      "name": "🔔 Alerta Hot Intent a OpenClaw",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [2400, 220]
+      "name": "🔔 Alerta Hot Intent a Gmail",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        2400,
+        220
+      ],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "",
+          "name": "Gmail Eight Academy"
+        }
+      }
     },
     {
       "parameters": {},
@@ -197,7 +308,10 @@
       "name": "📌 Signal Guardada — Loop Continúa",
       "type": "n8n-nodes-base.noOp",
       "typeVersion": 1,
-      "position": [2400, 440]
+      "position": [
+        2400,
+        440
+      ]
     },
     {
       "parameters": {},
@@ -205,26 +319,186 @@
       "name": "⏭️ Sin Resultados — Skip",
       "type": "n8n-nodes-base.noOp",
       "typeVersion": 1,
-      "position": [1520, 540]
+      "position": [
+        1520,
+        540
+      ]
     }
   ],
   "connections": {
-    "⏰ Trigger Mar/Jue 7AM": {"main": [[{"node": "⚙️ Config: 8 Intent Queries", "type": "main", "index": 0}]]},
-    "⚙️ Config: 8 Intent Queries": {"main": [[{"node": "🔄 Loop 8 Queries", "type": "main", "index": 0}]]},
-    "🔄 Loop 8 Queries": {"main": [[{"node": "🔍 Brave Search — Intent Query", "type": "main", "index": 0}]]},
-    "🔍 Brave Search — Intent Query": {"main": [[{"node": "🔧 Parse Resultados", "type": "main", "index": 0}]]},
-    "🔧 Parse Resultados": {"main": [[{"node": "⚡ ¿Tiene Resultados?", "type": "main", "index": 0}]]},
-    "⚡ ¿Tiene Resultados?": {"main": [[{"node": "🤖 Claude — Análisis de Intención", "type": "main", "index": 0}], [{"node": "⏭️ Sin Resultados — Skip", "type": "main", "index": 0}]]},
-    "🤖 Claude — Análisis de Intención": {"main": [[{"node": "🔧 Parse Intent Signal", "type": "main", "index": 0}]]},
-    "🔧 Parse Intent Signal": {"main": [[{"node": "📊 Guardar Intent Signal", "type": "main", "index": 0}]]},
-    "📊 Guardar Intent Signal": {"main": [[{"node": "🔥 ¿Intent ≥7? (Hot Signal)", "type": "main", "index": 0}]]},
-    "🔥 ¿Intent ≥7? (Hot Signal)": {"main": [[{"node": "🔔 Alerta Hot Intent a OpenClaw", "type": "main", "index": 0}], [{"node": "📌 Signal Guardada — Loop Continúa", "type": "main", "index": 0}]]},
-    "🔔 Alerta Hot Intent a OpenClaw": {"main": [[{"node": "🔄 Loop 8 Queries", "type": "main", "index": 0}]]},
-    "📌 Signal Guardada — Loop Continúa": {"main": [[{"node": "🔄 Loop 8 Queries", "type": "main", "index": 0}]]},
-    "⏭️ Sin Resultados — Skip": {"main": [[{"node": "🔄 Loop 8 Queries", "type": "main", "index": 0}]]}
+    "⏰ Trigger Mar/Jue 7AM": {
+      "main": [
+        [
+          {
+            "node": "⚙️ Config: 8 Intent Queries",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "⚙️ Config: 8 Intent Queries": {
+      "main": [
+        [
+          {
+            "node": "🔄 Loop 8 Queries",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🔄 Loop 8 Queries": {
+      "main": [
+        [
+          {
+            "node": "🔍 Brave Search — Intent Query",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🔍 Brave Search — Intent Query": {
+      "main": [
+        [
+          {
+            "node": "🔧 Parse Resultados",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🔧 Parse Resultados": {
+      "main": [
+        [
+          {
+            "node": "⚡ ¿Tiene Resultados?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "⚡ ¿Tiene Resultados?": {
+      "main": [
+        [
+          {
+            "node": "🤖 Claude — Análisis de Intención",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "⏭️ Sin Resultados — Skip",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🤖 Claude — Análisis de Intención": {
+      "main": [
+        [
+          {
+            "node": "🔧 Parse Intent Signal",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🔧 Parse Intent Signal": {
+      "main": [
+        [
+          {
+            "node": "📊 Guardar Intent Signal",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "📊 Guardar Intent Signal": {
+      "main": [
+        [
+          {
+            "node": "🔥 ¿Intent ≥7? (Hot Signal)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🔥 ¿Intent ≥7? (Hot Signal)": {
+      "main": [
+        [
+          {
+            "node": "🔔 Alerta Hot Intent a Gmail",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "📌 Signal Guardada — Loop Continúa",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🔔 Alerta Hot Intent a OpenClaw": {
+      "main": [
+        [
+          {
+            "node": "🔄 Loop 8 Queries",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "📌 Signal Guardada — Loop Continúa": {
+      "main": [
+        [
+          {
+            "node": "🔄 Loop 8 Queries",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "⏭️ Sin Resultados — Skip": {
+      "main": [
+        [
+          {
+            "node": "🔄 Loop 8 Queries",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
   },
   "active": false,
-  "settings": {"executionOrder": "v1", "saveExecutionProgress": true},
+  "settings": {
+    "executionOrder": "v1",
+    "saveExecutionProgress": true
+  },
   "versionId": "ea-wf2-v2",
-  "tags": [{"name": "eight-academy"}, {"name": "intent-keywords"}, {"name": "v2"}]
+  "tags": [
+    {
+      "name": "eight-academy"
+    },
+    {
+      "name": "intent-keywords"
+    },
+    {
+      "name": "v2"
+    }
+  ]
 }

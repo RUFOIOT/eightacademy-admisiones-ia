@@ -14,7 +14,10 @@
       "name": "🌐 Webhook — Nuevo Lead Tier A/B",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
-      "position": [200, 400],
+      "position": [
+        200,
+        400
+      ],
       "webhookId": "ea-v2-outreach"
     },
     {
@@ -27,27 +30,105 @@
       "name": "✅ Responder OK",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1,
-      "position": [420, 240]
+      "position": [
+        420,
+        240
+      ]
     },
     {
       "parameters": {
         "assignments": {
           "assignments": [
-            {"id": "s1", "name": "lead_name", "value": "={{ $json.body.Nombre_Lugar || $json.body.Nombre }}", "type": "string"},
-            {"id": "s2", "name": "lead_type", "value": "={{ $json.body.Tipo_Prospecto || 'colegio' }}", "type": "string"},
-            {"id": "s3", "name": "lead_address", "value": "={{ $json.body.Direccion }}", "type": "string"},
-            {"id": "s4", "name": "lead_sede", "value": "={{ $json.body.Sede_Mas_Cercana || '' }}", "type": "string"},
-            {"id": "s5", "name": "lead_nivel", "value": "={{ $json.body.Nivel_Sede || '' }}", "type": "string"},
-            {"id": "s6", "name": "lead_zona_nse", "value": "={{ $json.body.Zona_NSE || 'B' }}", "type": "string"},
-            {"id": "s7", "name": "lead_poder_adq", "value": "={{ $json.body.Score_Poder_Adquisitivo || 5 }}", "type": "number"},
-            {"id": "s8", "name": "lead_score", "value": "={{ $json.body.Score_Final || $json.body.Score_IA || 5 }}", "type": "number"},
-            {"id": "s9", "name": "lead_tier", "value": "={{ $json.body.Tier || 'B' }}", "type": "string"},
-            {"id": "s10", "name": "lead_perfil", "value": "={{ $json.body.Perfil_Familiar || $json.body.Persona_Objetivo || '' }}", "type": "string"},
-            {"id": "s11", "name": "lead_hook", "value": "={{ $json.body.Hook_Personalizado || $json.body.Motivo_IA || '' }}", "type": "string"},
-            {"id": "s12", "name": "lead_canal", "value": "={{ $json.body.Canal_Contacto || $json.body.Canal_Outreach || 'whatsapp' }}", "type": "string"},
-            {"id": "s13", "name": "lead_distancia", "value": "={{ $json.body.Distancia_Sede_km || '' }}", "type": "string"},
-            {"id": "s14", "name": "lead_website", "value": "={{ $json.body.Sitio_Web || '' }}", "type": "string"},
-            {"id": "s15", "name": "lead_phone", "value": "={{ $json.body.Telefono || '' }}", "type": "string"}
+            {
+              "id": "s1",
+              "name": "lead_name",
+              "value": "={{ $json.body.Nombre_Lugar || $json.body.Nombre }}",
+              "type": "string"
+            },
+            {
+              "id": "s2",
+              "name": "lead_type",
+              "value": "={{ $json.body.Tipo_Prospecto || 'colegio' }}",
+              "type": "string"
+            },
+            {
+              "id": "s3",
+              "name": "lead_address",
+              "value": "={{ $json.body.Direccion }}",
+              "type": "string"
+            },
+            {
+              "id": "s4",
+              "name": "lead_sede",
+              "value": "={{ $json.body.Sede_Mas_Cercana || '' }}",
+              "type": "string"
+            },
+            {
+              "id": "s5",
+              "name": "lead_nivel",
+              "value": "={{ $json.body.Nivel_Sede || '' }}",
+              "type": "string"
+            },
+            {
+              "id": "s6",
+              "name": "lead_zona_nse",
+              "value": "={{ $json.body.Zona_NSE || 'B' }}",
+              "type": "string"
+            },
+            {
+              "id": "s7",
+              "name": "lead_poder_adq",
+              "value": "={{ $json.body.Score_Poder_Adquisitivo || 5 }}",
+              "type": "number"
+            },
+            {
+              "id": "s8",
+              "name": "lead_score",
+              "value": "={{ $json.body.Score_Final || $json.body.Score_IA || 5 }}",
+              "type": "number"
+            },
+            {
+              "id": "s9",
+              "name": "lead_tier",
+              "value": "={{ $json.body.Tier || 'B' }}",
+              "type": "string"
+            },
+            {
+              "id": "s10",
+              "name": "lead_perfil",
+              "value": "={{ $json.body.Perfil_Familiar || $json.body.Persona_Objetivo || '' }}",
+              "type": "string"
+            },
+            {
+              "id": "s11",
+              "name": "lead_hook",
+              "value": "={{ $json.body.Hook_Personalizado || $json.body.Motivo_IA || '' }}",
+              "type": "string"
+            },
+            {
+              "id": "s12",
+              "name": "lead_canal",
+              "value": "={{ $json.body.Canal_Contacto || $json.body.Canal_Outreach || 'whatsapp' }}",
+              "type": "string"
+            },
+            {
+              "id": "s13",
+              "name": "lead_distancia",
+              "value": "={{ $json.body.Distancia_Sede_km || '' }}",
+              "type": "string"
+            },
+            {
+              "id": "s14",
+              "name": "lead_website",
+              "value": "={{ $json.body.Sitio_Web || '' }}",
+              "type": "string"
+            },
+            {
+              "id": "s15",
+              "name": "lead_phone",
+              "value": "={{ $json.body.Telefono || '' }}",
+              "type": "string"
+            }
           ]
         },
         "options": {}
@@ -56,7 +137,10 @@
       "name": "💾 Extraer Datos Lead",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
-      "position": [420, 480]
+      "position": [
+        420,
+        480
+      ]
     },
     {
       "parameters": {
@@ -64,8 +148,14 @@
         "value1": "={{ $json.lead_zona_nse }}",
         "rules": {
           "rules": [
-            {"value2": "A", "output": 0},
-            {"value2": "B+", "output": 1}
+            {
+              "value2": "A",
+              "output": 0
+            },
+            {
+              "value2": "B+",
+              "output": 1
+            }
           ]
         },
         "fallbackOutput": 2
@@ -74,7 +164,10 @@
       "name": "🔀 Router — NSE (A / B+ / B-C)",
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3,
-      "position": [640, 480]
+      "position": [
+        640,
+        480
+      ]
     },
     {
       "parameters": {
@@ -83,9 +176,18 @@
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
-            {"name": "x-api-key", "value": "={{ $vars.ANTHROPIC_API_KEY }}"},
-            {"name": "anthropic-version", "value": "2023-06-01"},
-            {"name": "content-type", "value": "application/json"}
+            {
+              "name": "x-api-key",
+              "value": "={{ $vars.ANTHROPIC_API_KEY }}"
+            },
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            },
+            {
+              "name": "content-type",
+              "value": "application/json"
+            }
           ]
         },
         "sendBody": true,
@@ -97,7 +199,10 @@
       "name": "🤖 Claude — Outreach NSE A (Premium)",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [860, 280]
+      "position": [
+        860,
+        280
+      ]
     },
     {
       "parameters": {
@@ -106,9 +211,18 @@
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
-            {"name": "x-api-key", "value": "={{ $vars.ANTHROPIC_API_KEY }}"},
-            {"name": "anthropic-version", "value": "2023-06-01"},
-            {"name": "content-type", "value": "application/json"}
+            {
+              "name": "x-api-key",
+              "value": "={{ $vars.ANTHROPIC_API_KEY }}"
+            },
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            },
+            {
+              "name": "content-type",
+              "value": "application/json"
+            }
           ]
         },
         "sendBody": true,
@@ -120,7 +234,10 @@
       "name": "🤖 Claude — Outreach NSE B+ (Aspiracional)",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [860, 480]
+      "position": [
+        860,
+        480
+      ]
     },
     {
       "parameters": {
@@ -129,9 +246,18 @@
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
-            {"name": "x-api-key", "value": "={{ $vars.ANTHROPIC_API_KEY }}"},
-            {"name": "anthropic-version", "value": "2023-06-01"},
-            {"name": "content-type", "value": "application/json"}
+            {
+              "name": "x-api-key",
+              "value": "={{ $vars.ANTHROPIC_API_KEY }}"
+            },
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            },
+            {
+              "name": "content-type",
+              "value": "application/json"
+            }
           ]
         },
         "sendBody": true,
@@ -143,7 +269,10 @@
       "name": "🤖 Claude — Outreach NSE B (Becas)",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [860, 680]
+      "position": [
+        860,
+        680
+      ]
     },
     {
       "parameters": {
@@ -153,7 +282,10 @@
       "name": "🔧 Parse Outreach Generado",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1120, 480]
+      "position": [
+        1120,
+        480
+      ]
     },
     {
       "parameters": {
@@ -161,8 +293,14 @@
         "value1": "={{ $json.lead_canal }}",
         "rules": {
           "rules": [
-            {"value2": "whatsapp", "output": 0},
-            {"value2": "email", "output": 1}
+            {
+              "value2": "whatsapp",
+              "output": 0
+            },
+            {
+              "value2": "email",
+              "output": 1
+            }
           ]
         },
         "fallbackOutput": 0
@@ -171,22 +309,33 @@
       "name": "🔀 Router — Canal (WA / Email)",
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3,
-      "position": [1340, 480]
+      "position": [
+        1340,
+        480
+      ]
     },
     {
       "parameters": {
-        "method": "POST",
-        "url": "={{ $vars.OPENCLAW_WEBHOOK_URL }}",
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={\n  \"text\": \"📱 *Draft WhatsApp Listo — Eight Academy*\\n\\n🏠 *{{ $json.lead_name }}* | {{ $json.lead_tier }} | NSE {{ $json.lead_zona_nse }}\\n📍 {{ $json.lead_address }}\\n🏫 Sede: {{ $json.lead_sede }}\\n\\n*Mensaje para enviar:*\\n{{ $json.whatsapp_msg }}\\n\\n---\\n💡 {{ $json.value_prop }}\\n✅ CTA: {{ $json.cta }}\\n📅 Follow-up en {{ $json.follow_up_days }} días\"\n}",
+        "sendTo": "={{ $vars.ADMIN_EMAIL || 'admisiones@eightacademy.ec' }}",
+        "subject": "=🔔 Eight Academy — Draft WhatsApp Listo: {{ $json.lead_name }} ({{ $json.lead_tier }} | NSE {{ $json.lead_zona_nse }})",
+        "emailType": "html",
+        "message": "=<div style='font-family:Arial,sans-serif;max-width:640px;margin:0 auto;'><div style='background:#1a237e;color:#fff;padding:20px;border-radius:8px 8px 0 0;'><h2 style='margin:0'>📱 Draft WhatsApp — Eight Academy</h2></div><div style='padding:20px;border:1px solid #e0e0e0;border-top:none;border-radius:0 0 8px 8px;'><table style='width:100%;border-collapse:collapse;margin-bottom:20px;'><tr><td style='padding:8px;background:#f5f5f5;font-weight:bold'>🏠 Lead</td><td style='padding:8px'>{{ $json.lead_name }}</td></tr><tr><td style='padding:8px;background:#f5f5f5;font-weight:bold'>📊 Tier / NSE</td><td style='padding:8px'>{{ $json.lead_tier }} | NSE {{ $json.lead_zona_nse }}</td></tr><tr><td style='padding:8px;background:#f5f5f5;font-weight:bold'>📍 Dirección</td><td style='padding:8px'>{{ $json.lead_address }}</td></tr><tr><td style='padding:8px;background:#f5f5f5;font-weight:bold'>🏫 Sede cercana</td><td style='padding:8px'>{{ $json.lead_sede }}</td></tr><tr><td style='padding:8px;background:#f5f5f5;font-weight:bold'>🎯 Score</td><td style='padding:8px'>{{ $json.lead_score }}/10</td></tr></table><div style='background:#e8f5e9;border-left:4px solid #2e7d32;padding:16px;border-radius:4px;margin-bottom:20px;'><h3 style='margin-top:0;color:#2e7d32'>📲 Mensaje WhatsApp (copiar y enviar):</h3><pre style='white-space:pre-wrap;font-family:Arial;'>{{ $json.whatsapp_msg }}</pre></div><div style='background:#e3f2fd;border-left:4px solid #1565c0;padding:12px;border-radius:4px;margin-bottom:12px;'><strong>💡 Value Prop:</strong> {{ $json.value_prop }}</div><div style='background:#fff3e0;border-left:4px solid #e65100;padding:12px;border-radius:4px;'><strong>✅ CTA:</strong> {{ $json.cta }}<br><strong>📅 Follow-up:</strong> {{ $json.follow_up_days }} días</div></div></div>",
         "options": {}
       },
       "id": "ov2-0010",
-      "name": "📱 Enviar Draft WA a OpenClaw",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [1560, 380]
+      "name": "📱 Gmail — Notificar Felipe (WA Draft)",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1560,
+        380
+      ],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "",
+          "name": "Gmail Eight Academy"
+        }
+      }
     },
     {
       "parameters": {
@@ -200,14 +349,30 @@
       "name": "📧 Gmail — Draft Email",
       "type": "n8n-nodes-base.gmail",
       "typeVersion": 2.1,
-      "position": [1560, 580],
-      "credentials": {"gmailOAuth2": {"id": "FILL_GMAIL_CRED_ID", "name": "Gmail Eight Academy"}}
+      "position": [
+        1560,
+        580
+      ],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "",
+          "name": "Gmail Eight Academy"
+        }
+      }
     },
     {
       "parameters": {
         "operation": "update",
-        "documentId": {"__rl": true, "value": "={{ $vars.LEADS_SHEET_ID }}", "mode": "id"},
-        "sheetName": {"__rl": true, "value": "Leads Familias", "mode": "name"},
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $vars.LEADS_SHEET_ID }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Leads Familias",
+          "mode": "name"
+        },
         "columns": {
           "mappingMode": "defineBelow",
           "value": {
@@ -219,32 +384,194 @@
             "Promo Angle": "={{ $json.promo_angle }}"
           }
         },
-        "where": {"values": [{"column": "Nombre Lugar", "value": "={{ $json.lead_name }}"}]},
+        "where": {
+          "values": [
+            {
+              "column": "Nombre Lugar",
+              "value": "={{ $json.lead_name }}"
+            }
+          ]
+        },
         "options": {}
       },
       "id": "ov2-0012",
       "name": "📊 Update Lead — Outreach Sent",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.4,
-      "position": [1780, 480],
-      "credentials": {"googleSheetsOAuth2Api": {"id": "FILL_GOOGLE_CRED_ID", "name": "Google Sheets (Eight Academy)"}}
+      "position": [
+        1780,
+        480
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "",
+          "name": "Google Sheets (Eight Academy)"
+        }
+      }
     }
   ],
   "connections": {
-    "🌐 Webhook — Nuevo Lead Tier A/B": {"main": [[{"node": "✅ Responder OK", "type": "main", "index": 0}, {"node": "💾 Extraer Datos Lead", "type": "main", "index": 0}]]},
-    "💾 Extraer Datos Lead": {"main": [[{"node": "🔀 Router — NSE (A / B+ / B-C)", "type": "main", "index": 0}]]},
-    "🔀 Router — NSE (A / B+ / B-C)": {"main": [[{"node": "🤖 Claude — Outreach NSE A (Premium)", "type": "main", "index": 0}], [{"node": "🤖 Claude — Outreach NSE B+ (Aspiracional)", "type": "main", "index": 0}], [{"node": "🤖 Claude — Outreach NSE B (Becas)", "type": "main", "index": 0}]]},
-    "🤖 Claude — Outreach NSE A (Premium)": {"main": [[{"node": "🔧 Parse Outreach Generado", "type": "main", "index": 0}]]},
-    "🤖 Claude — Outreach NSE B+ (Aspiracional)": {"main": [[{"node": "🔧 Parse Outreach Generado", "type": "main", "index": 0}]]},
-    "🤖 Claude — Outreach NSE B (Becas)": {"main": [[{"node": "🔧 Parse Outreach Generado", "type": "main", "index": 0}]]},
-    "🔧 Parse Outreach Generado": {"main": [[{"node": "🔀 Router — Canal (WA / Email)", "type": "main", "index": 0}]]},
-    "🔀 Router — Canal (WA / Email)": {"main": [[{"node": "📱 Enviar Draft WA a OpenClaw", "type": "main", "index": 0}], [{"node": "📧 Gmail — Draft Email", "type": "main", "index": 0}]]},
-    "📱 Enviar Draft WA a OpenClaw": {"main": [[{"node": "📊 Update Lead — Outreach Sent", "type": "main", "index": 0}]]},
-    "📧 Gmail — Draft Email": {"main": [[{"node": "📊 Update Lead — Outreach Sent", "type": "main", "index": 0}]]}
+    "🌐 Webhook — Nuevo Lead Tier A/B": {
+      "main": [
+        [
+          {
+            "node": "💾 Extraer Datos Lead",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "💾 Extraer Datos Lead": {
+      "main": [
+        [
+          {
+            "node": "🔀 Router — NSE (A / B+ / B-C)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🔀 Router — NSE (A / B+ / B-C)": {
+      "main": [
+        [
+          {
+            "node": "🤖 Claude — Outreach NSE A (Premium)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "🤖 Claude — Outreach NSE B+ (Aspiracional)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "🤖 Claude — Outreach NSE B (Becas)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🤖 Claude — Outreach NSE A (Premium)": {
+      "main": [
+        [
+          {
+            "node": "🔧 Parse Outreach Generado",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🤖 Claude — Outreach NSE B+ (Aspiracional)": {
+      "main": [
+        [
+          {
+            "node": "🔧 Parse Outreach Generado",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🤖 Claude — Outreach NSE B (Becas)": {
+      "main": [
+        [
+          {
+            "node": "🔧 Parse Outreach Generado",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🔧 Parse Outreach Generado": {
+      "main": [
+        [
+          {
+            "node": "🔀 Router — Canal (WA / Email)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🔀 Router — Canal (WA / Email)": {
+      "main": [
+        [
+          {
+            "node": "📱 Gmail — Notificar Felipe (WA Draft)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "📧 Gmail — Draft Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "📧 Gmail — Draft Email": {
+      "main": [
+        [
+          {
+            "node": "📊 Update Lead — Outreach Sent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "📊 Update Lead — Outreach Sent": {
+      "main": [
+        [
+          {
+            "node": "✅ Responder OK",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "📱 Gmail — Notificar Felipe (WA Draft)": {
+      "main": [
+        [
+          {
+            "node": "📊 Update Lead — Outreach Sent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
   },
-  "active": false,
-  "settings": {"executionOrder": "v1"},
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
   "versionId": "ea-wf3-v2",
-  "tags": [{"name": "eight-academy"}, {"name": "outreach"}, {"name": "nse-routing"}, {"name": "v2"}],
+  "tags": [
+    {
+      "name": "eight-academy"
+    },
+    {
+      "name": "outreach"
+    },
+    {
+      "name": "nse-routing"
+    },
+    {
+      "name": "v2"
+    }
+  ],
   "_KEY_IMPROVEMENT": "Routea por NSE: A=exclusividad/metaverso, B+=innovación+sin matrícula como extra, B=sin matrícula+becas como gancho principal"
 }
